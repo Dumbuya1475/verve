@@ -4,8 +4,13 @@ import { useState, useEffect } from 'react';
 
 const PreviewA4 = ({ type, formData, groupMembers }: any) => (
   <div
-    className="w-[595px] min-h-[841px] shrink-0 p-[50px] flex flex-col text-[#000000] bg-white print:shadow-none print:max-w-none"
-    style={{ boxShadow: '0px 4px 20px -2px rgba(28, 25, 23, 0.08)', fontFamily: 'Arial, sans-serif', lineHeight: '1.2' }}
+    className="w-[595px] min-h-[841px] shrink-0 p-[50px] flex flex-col text-[#000000] bg-white print:shadow-none print:max-w-none print:!zoom-100"
+    style={{ 
+      boxShadow: '0px 4px 20px -2px rgba(28, 25, 23, 0.08)', 
+      fontFamily: 'Arial, sans-serif', 
+      lineHeight: '1.2',
+      zoom: 'min(1, calc((100vw - 32px) / 595))'
+    }}
   >
     {/* Logo */}
     <div className="flex justify-center mb-6">
@@ -127,6 +132,7 @@ const PreviewA4 = ({ type, formData, groupMembers }: any) => (
 
 export default function CoverPage() {
   const [isClient, setIsClient] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [type, setType] = useState<'Individual' | 'Group'>('Individual');
   const [formData, setFormData] = useState({
@@ -187,13 +193,34 @@ export default function CoverPage() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 h-full max-h-[85vh] print:max-h-none print:block">
-      {/* Left Pane: Input Form */}
-      <section className="w-full md:w-5/12 flex flex-col gap-6 h-full overflow-y-auto pr-2 custom-scrollbar print:hidden">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold text-foreground">Cover Page Details</h1>
-          <p className="text-secondary text-base">Fill in your assignment information to generate a professional cover.</p>
-        </div>
+    <div className="flex flex-col h-full print:block">
+      {/* Mobile Tab Switcher */}
+      <div className="md:hidden flex bg-surface p-1 rounded-xl shadow-sm border border-outline-variant/30 mb-6 shrink-0 print:hidden">
+        <button
+          onClick={() => setMobileTab('editor')}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
+            mobileTab === 'editor' ? 'bg-surface-strong text-foreground shadow-sm' : 'text-secondary hover:text-foreground'
+          }`}
+        >
+          Editor
+        </button>
+        <button
+          onClick={() => setMobileTab('preview')}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
+            mobileTab === 'preview' ? 'bg-surface-strong text-foreground shadow-sm' : 'text-secondary hover:text-foreground'
+          }`}
+        >
+          Preview
+        </button>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-8 flex-1 md:max-h-[85vh] print:max-h-none print:block">
+        {/* Left Pane: Input Form */}
+        <section className={`w-full md:w-5/12 flex flex-col gap-6 h-full overflow-y-auto pr-2 custom-scrollbar print:hidden ${mobileTab === 'editor' ? 'flex' : 'hidden md:flex'}`}>
+          <div className="flex flex-col gap-2 shrink-0">
+            <h1 className="text-2xl font-semibold text-foreground">Cover Page Details</h1>
+            <p className="text-secondary text-base">Fill in your assignment information to generate a professional cover.</p>
+          </div>
 
         {/* Toggle Selector */}
         <div className="bg-surface p-1 rounded-xl flex shadow-sm border border-outline-variant/30">
@@ -385,7 +412,7 @@ export default function CoverPage() {
       </section>
 
       {/* Right Pane: Live Preview */}
-      <section className="w-full md:w-7/12 flex flex-col gap-4 print:w-full print:block">
+      <section className={`w-full md:w-7/12 flex-col gap-4 print:w-full print:block ${mobileTab === 'preview' ? 'flex' : 'hidden md:flex'}`}>
         <div className="flex justify-between items-center print:hidden">
           <h2 className="text-sm font-semibold text-secondary uppercase tracking-wider">Preview</h2>
           <div className="flex gap-2">
@@ -419,6 +446,7 @@ export default function CoverPage() {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }

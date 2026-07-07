@@ -1,251 +1,214 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { BottomNav } from '@/components/BottomNav';
 
 export default function LandingPage() {
+  // Setup intersection observer for scroll animations
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('opacity-100', 'translate-y-0');
+          entry.target.classList.remove('opacity-0', 'translate-y-4');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.animate-on-scroll').forEach(el => {
+      el.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-4');
+      observerRef.current?.observe(el);
+    });
+
+    return () => observerRef.current?.disconnect();
+  }, []);
+
   return (
-    <div className="bg-surface text-foreground selection:bg-primary/20 selection:text-primary">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-md">
-        <div className="flex justify-between items-center px-6 md:px-10 max-w-6xl mx-auto w-full h-20">
-          <div className="text-3xl font-bold text-primary tracking-tight">CommitCraft</div>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="hidden sm:block text-secondary font-semibold text-sm hover:text-primary px-4 py-2 transition-all">Login</Link>
-            <Link href="/login" className="bg-primary text-primary-foreground px-6 py-2 rounded-control text-sm font-bold hover:scale-105 active:scale-95 transition-all shadow-soft">
-              Connect GitHub
+    <div className="flex flex-col min-h-screen bg-background font-sans pb-20 md:pb-0">
+      
+      {/* Top Header */}
+      <header className="bg-background/90 backdrop-blur-md sticky top-0 z-50">
+        <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-2xl">school</span>
+            <span className="font-bold text-xl tracking-tight text-primary">Verve</span>
+          </div>
+          <Link href="/cover" className="bg-primary text-primary-foreground text-sm font-semibold px-4 py-2 rounded-control hover:scale-105 active:scale-95 transition-all shadow-soft">
+            Connect GitHub
+          </Link>
+        </div>
+      </header>
+
+      <main className="flex-grow">
+        {/* Hero Section */}
+        <section className="px-4 pt-12 pb-8 flex flex-col items-center text-center max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-1.5 bg-secondary-container text-secondary px-4 py-1.5 rounded-full mb-6 animate-[fadeIn_0.8s_ease-out_forwards]">
+            <span className="material-symbols-outlined text-[16px]">verified</span>
+            <span className="text-xs font-bold tracking-wide uppercase">Academic Excellence Platform</span>
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight leading-tight">
+            Elevate Your <br className="md:hidden" />Academic Potential
+          </h1>
+          
+          <p className="text-base md:text-lg text-secondary mb-8 max-w-md mx-auto">
+            Transform your studies with AI-powered document creation, interactive version control, and comprehensive exam preparation tools.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row w-full gap-4 justify-center">
+            <Link href="/cover" className="bg-coral text-white font-semibold text-base py-3 px-8 rounded-xl shadow-soft hover:brightness-110 active:scale-95 transition-all w-full sm:w-auto text-center">
+              Get Started Free
+            </Link>
+            <Link href="/document" className="bg-surface-strong text-foreground font-semibold text-base py-3 px-8 rounded-xl hover:bg-surface border border-outline-variant/30 active:scale-95 transition-all w-full sm:w-auto text-center">
+              View Demo
             </Link>
           </div>
-        </div>
-      </nav>
 
-      <main className="pt-20">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden pt-20 pb-32">
-          <div className="max-w-6xl mx-auto px-6 md:px-10 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div className="space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-1 bg-secondary-container text-foreground px-4 py-1 rounded-full text-xs font-semibold tracking-wider mb-4">
-                <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
-                AI-Powered Academic Workflow
-              </div>
-              <h1 className="text-4xl lg:text-[64px] lg:leading-[72px] font-bold tracking-tight">
-                Elevate Your <br /><span className="text-primary">Academic Potential</span>
-              </h1>
-              <p className="text-lg text-secondary max-w-xl mx-auto lg:mx-0">
-                The all-in-one suite for ambitious students. Craft stunning document covers, build research papers with AI assistance, and master your exams with ease.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-                <Link href="/cover" className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-soft flex items-center justify-center gap-2">
-                  Get Started Free
-                  <span className="material-symbols-outlined">arrow_forward</span>
-                </Link>
-                <Link href="/cover" className="bg-surface-strong text-secondary px-8 py-3 rounded-full font-bold text-lg hover:bg-surface transition-all shadow-soft border border-outline-variant/40 flex items-center justify-center gap-2">
-                  View Demo
-                </Link>
-              </div>
-            </div>
-            
-            <div className="relative hidden lg:block">
-              <div className="bg-surface-strong/70 backdrop-blur-md border border-surface-strong p-6 rounded-[32px] shadow-soft rotate-2 relative z-20">
-                <img 
-                  className="w-full h-auto rounded-xl" 
-                  alt="CommitCraft interface preview" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-YPemcxQjXxSS7Fpoit4zVpg_mKcBr1ECMPCq_E7nQ-Y6IWvrbaUHN3ihhhrqFSgLYcS2bPMK5AEjxaq03_XnFpIM2VHApKoXXnS1ocG6ZIoZQFA25q5a68q3xtVy43iTbYiqwzzvw2rfrOIgO528OKypRDlYMm_ceYe8SNDJQok80UYE1arwf6FBoSP5TJooKnchMrDey_FSdhAEQRNszL9ofB6LKXr4nis5i0nFX6WGsH6qhkJnq3aCs0nYjjSPC8Fn01wmXrOU" 
-                />
-              </div>
-              
-              {/* Decorative Floating Elements */}
-              <div className="absolute -top-12 -right-12 bg-surface-strong/80 backdrop-blur-md p-4 rounded-container shadow-soft -rotate-6 z-30 flex items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-primary-foreground">
-                  <span className="material-symbols-outlined">auto_fix_high</span>
-                </div>
-                <div>
-                  <p className="text-sm font-bold">AI Assistant</p>
-                  <p className="text-xs text-secondary">Enhancing draft...</p>
-                </div>
-              </div>
-              
-              <div className="absolute -bottom-8 -left-8 bg-surface-strong/90 p-4 rounded-container shadow-soft rotate-3 z-10">
-                <div className="flex items-center gap-1 mb-2">
-                  <span className="material-symbols-outlined text-primary">verified</span>
-                  <span className="text-xs font-bold uppercase">Document Grade</span>
-                </div>
-                <div className="h-2 w-32 bg-outline-variant/40 rounded-full overflow-hidden">
-                  <div className="h-full bg-primary w-[92%]"></div>
-                </div>
-              </div>
+          {/* Hero Mockup */}
+          <div className="mt-12 w-full relative group animate-on-scroll">
+            <div className="absolute -inset-1 bg-gradient-to-r from-coral/20 to-primary/20 rounded-[32px] blur-xl opacity-50 group-hover:opacity-75 transition duration-1000"></div>
+            <div className="relative bg-surface rounded-[24px] shadow-soft overflow-hidden border border-outline-variant/30">
+              <img 
+                className="w-full h-auto object-cover" 
+                alt="App Dashboard Preview" 
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDh7giMISESVyvcd9RRxUFrS_Vy_4gTP-oOzqjyA5XYeopwQ4mE1LpTqLkl4B1d1D-3WPDzaR19KyYXLOUYmQSZrLdDKBG4e0ceYS1htOvznbw3nJdtZHu9Bj5rEWw5Wnl5GXKd_JR3hnkna7oMJ2FBZ5yacwsd6r38-U85G9jR7jEUcxmTrAdxO3PZLRd3Ad0NcF6xHkpdZv-6hZJHddFHLvSG2EuJe-BumxU0Mr5BpC3RFmCWk9rVbUIS6MIHuxqbt8-QQ5INNaL3" 
+              />
             </div>
           </div>
         </section>
 
-        {/* Social Proof */}
-        <section className="py-16 bg-surface-strong">
-          <div className="max-w-6xl mx-auto px-6 md:px-10">
-            <p className="text-center text-xs font-semibold tracking-wider text-secondary mb-8 uppercase">TRUSTED BY AMBITIOUS STUDENTS AT</p>
-            <div className="flex flex-wrap justify-center items-center gap-16 grayscale opacity-60">
-              <div className="text-xl font-bold">STANFORD</div>
-              <div className="text-xl font-bold">OXFORD</div>
-              <div className="text-xl font-bold">MIT</div>
-              <div className="text-xl font-bold">HARVARD</div>
-              <div className="text-xl font-bold">SORBONNE</div>
+        {/* Trusted By Marquee */}
+        <section className="py-8 bg-surface-strong overflow-hidden my-8">
+          <p className="text-center text-xs font-bold text-secondary uppercase tracking-widest mb-6">Trusted by students at</p>
+          <div className="relative flex overflow-x-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
+            <div className="flex animate-[marquee_25s_linear_infinite] whitespace-nowrap min-w-full justify-around gap-12 px-6">
+              {['Stanford', 'Oxford', 'MIT', 'Harvard', 'ETH Zurich'].map((uni, i) => (
+                <div key={i} className="flex items-center gap-2 grayscale opacity-50">
+                  <span className="material-symbols-outlined text-2xl">account_balance</span>
+                  <span className="font-bold text-xl">{uni}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex animate-[marquee_25s_linear_infinite] whitespace-nowrap min-w-full justify-around gap-12 px-6 absolute top-0 left-full">
+              {['Stanford', 'Oxford', 'MIT', 'Harvard', 'ETH Zurich'].map((uni, i) => (
+                <div key={i} className="flex items-center gap-2 grayscale opacity-50">
+                  <span className="material-symbols-outlined text-2xl">account_balance</span>
+                  <span className="font-bold text-xl">{uni}</span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Features Bento Grid */}
-        <section className="py-32 bg-surface">
-          <div className="max-w-6xl mx-auto px-6 md:px-10">
-            <div className="text-center mb-24">
-              <h2 className="text-4xl font-bold tracking-tight mb-4">Academic Excellence, <span className="text-primary">Simplified</span></h2>
-              <p className="text-lg text-secondary max-w-2xl mx-auto">Everything you need to succeed in your academic journey, from initial research to the final exam.</p>
+        {/* Features Stack */}
+        <section className="px-4 py-12 max-w-xl mx-auto space-y-6">
+          <div className="flex flex-col items-center mb-10">
+            <h3 className="text-2xl font-bold text-foreground text-center">Built for Modern Scholars</h3>
+            <div className="h-1 w-12 bg-coral rounded-full mt-3"></div>
+          </div>
+
+          <div className="bg-surface p-6 rounded-[24px] shadow-soft border border-outline-variant/30 flex flex-col gap-4 animate-on-scroll">
+            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary text-[28px]">edit_note</span>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-              {/* Feature 1: Document Builder */}
-              <div className="md:col-span-8 bg-surface-strong rounded-[32px] p-8 shadow-soft flex flex-col justify-between group hover:-translate-y-1 transition-all duration-300">
-                <div className="max-w-md">
-                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4">
-                    <span className="material-symbols-outlined">edit_note</span>
-                  </div>
-                  <h3 className="text-2xl font-semibold mb-2">AI Document Builder</h3>
-                  <p className="text-base text-secondary">
-                    Focus on your ideas while our AI handles the formatting, citations, and structure. Seamlessly integrate your research notes into polished papers.
-                  </p>
-                </div>
-                <div className="mt-8 pt-8 border-t border-outline-variant/30 flex items-center justify-between">
-                  <span className="text-sm font-bold group-hover:text-primary transition-colors">Learn about the Builder</span>
-                  <span className="material-symbols-outlined text-primary">arrow_right_alt</span>
-                </div>
-                <div className="mt-8 rounded-xl overflow-hidden h-48 bg-surface">
-                  <img 
-                    className="w-full h-full object-cover" 
-                    alt="Document Builder UI" 
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuACsY_ppEWLs-5FSpjNk7MqOqFwQXB8TjUmrUUwf1HFOUk7_ADoilzZ9mqQsRc8R6dQFf8qLF73Blfdu27atHPDgAeq6X9C6Z8ddVUBzvjy1G2aH3zpoD2ECvcQM_bDUx0ZK1xqS7h0eCVpqef2ktCtgNDDflFLwFHiq3zZZs4TA-Bag4qCGHDTVIBJjfYXPiGSPmkyrBzZcSTwnZ2jOXKxi-t_4LNgj3BYxaFBUzL5d30mmUc8SOK2UdE4LGMrbJkTmCQwuoTR0Bd5" 
-                  />
-                </div>
-              </div>
+            <div>
+              <h4 className="text-xl font-bold text-foreground mb-1.5">AI Document Builder</h4>
+              <p className="text-sm text-secondary leading-relaxed">Smart formatting and content suggestions that help you draft academic papers 3x faster while maintaining rigorous standards.</p>
+            </div>
+          </div>
 
-              {/* Feature 2: Cover Generator */}
-              <div className="md:col-span-4 bg-primary rounded-[32px] p-8 shadow-soft text-primary-foreground flex flex-col justify-between group hover:-translate-y-1 transition-all duration-300">
-                <div>
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white mb-4">
-                    <span className="material-symbols-outlined">palette</span>
-                  </div>
-                  <h3 className="text-2xl font-semibold mb-2">Cover Design</h3>
-                  <p className="text-base opacity-90">
-                    Create professional cover pages in seconds. Choose from dozens of academic templates.
-                  </p>
-                </div>
-                <div className="mt-20">
-                  <div className="flex -space-x-4 mb-4">
-                    <div className="w-24 h-32 bg-white/20 rounded-lg border-2 border-white/40 rotate-[-10deg]"></div>
-                    <div className="w-24 h-32 bg-white/40 rounded-lg border-2 border-white/60 z-10"></div>
-                    <div className="w-24 h-32 bg-surface-strong rounded-lg shadow-soft z-20 rotate-[10deg] flex items-center justify-center">
-                      <div className="w-4 h-4 rounded-full bg-primary-container"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <div className="bg-surface p-6 rounded-[24px] shadow-soft border border-outline-variant/30 flex flex-col gap-4 animate-on-scroll">
+            <div className="w-12 h-12 bg-secondary-container rounded-xl flex items-center justify-center">
+              <span className="material-symbols-outlined text-secondary text-[28px]">description</span>
+            </div>
+            <div>
+              <h4 className="text-xl font-bold text-foreground mb-1.5">Cover Design</h4>
+              <p className="text-sm text-secondary leading-relaxed">Generate professional, institution-compliant cover pages automatically for every report or thesis you create.</p>
+            </div>
+          </div>
 
-              {/* Feature 3: Master Hub */}
-              <div className="md:col-span-4 bg-secondary-container rounded-[32px] p-8 shadow-soft flex flex-col group hover:-translate-y-1 transition-all duration-300">
-                <div className="w-12 h-12 bg-surface-strong rounded-xl flex items-center justify-center text-secondary mb-4">
-                  <span className="material-symbols-outlined">quiz</span>
-                </div>
-                <h3 className="text-2xl font-semibold mb-2">Exam Master</h3>
-                <p className="text-base text-secondary">
-                  Transform your slides and notes into interactive flashcards and practice exams automatically.
-                </p>
-              </div>
+          <div className="bg-surface p-6 rounded-[24px] shadow-soft border border-outline-variant/30 flex flex-col gap-4 animate-on-scroll">
+            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary text-[28px]">quiz</span>
+            </div>
+            <div>
+              <h4 className="text-xl font-bold text-foreground mb-1.5">Exam Master</h4>
+              <p className="text-sm text-secondary leading-relaxed">Turn your notes into interactive quizzes and study schedules. Adaptive learning that focuses on your weak spots.</p>
+            </div>
+          </div>
 
-              {/* Feature 4: Collaboration */}
-              <div className="md:col-span-8 bg-foreground text-background rounded-[32px] p-8 shadow-soft flex items-center gap-8 group hover:-translate-y-1 transition-all duration-300">
-                <div className="flex-1">
-                  <h3 className="text-2xl font-semibold mb-2">Git-Inspired Versioning</h3>
-                  <p className="text-base opacity-80">
-                    Never lose a draft again. Track every change, branch out your ideas, and merge collaboration seamlessly. It's version control for academics.
-                  </p>
-                  <button className="mt-6 px-4 py-2 border border-white/20 rounded-full text-sm font-medium hover:bg-white/10 transition-all">Explore Git Sync</button>
-                </div>
-                <div className="hidden sm:flex w-1/3 bg-white/5 rounded-2xl h-48 flex-col p-4 gap-2">
-                  <div className="h-2 w-full bg-white/20 rounded-full"></div>
-                  <div className="h-2 w-3/4 bg-white/20 rounded-full"></div>
-                  <div className="h-2 w-1/2 bg-primary rounded-full"></div>
-                  <div className="h-2 w-full bg-white/20 rounded-full"></div>
-                </div>
-              </div>
+          <div className="bg-surface p-6 rounded-[24px] shadow-soft border border-outline-variant/30 flex flex-col gap-4 animate-on-scroll">
+            <div className="w-12 h-12 bg-secondary-container rounded-xl flex items-center justify-center">
+              <span className="material-symbols-outlined text-foreground text-[28px]">terminal</span>
+            </div>
+            <div>
+              <h4 className="text-xl font-bold text-foreground mb-1.5">Git-Inspired Versioning</h4>
+              <p className="text-sm text-secondary leading-relaxed">Never lose a draft again. Track changes, branch out ideas, and merge final versions with professional-grade version control.</p>
             </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="py-32 relative overflow-hidden">
-          <div className="max-w-6xl mx-auto px-6 md:px-10 text-center">
-            <div className="bg-primary/10 p-12 rounded-[48px] shadow-soft relative border border-primary/20">
-              <div className="relative z-10 py-8">
-                <h2 className="text-4xl font-bold tracking-tight text-foreground mb-4">Ready to master your studies?</h2>
-                <p className="text-lg text-secondary max-w-xl mx-auto mb-8">
-                  Join 50,000+ students who are already using CommitCraft to stay organized, focus better, and achieve higher grades.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/cover" className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-bold text-lg shadow-soft hover:scale-105 active:scale-95 transition-all">
-                    Get Started Now — It's Free
-                  </Link>
-                  <Link href="/cover" className="bg-surface-strong text-secondary px-8 py-3 rounded-full font-bold text-lg shadow-soft hover:bg-surface border border-outline-variant/30 transition-all">
-                    Contact Sales
-                  </Link>
-                </div>
-                <p className="mt-6 text-xs font-semibold text-secondary uppercase tracking-wider">No credit card required. Cancel anytime.</p>
-              </div>
+        <section className="px-4 py-12 max-w-xl mx-auto">
+          <div className="bg-coral rounded-[32px] p-8 text-center text-white shadow-soft overflow-hidden relative animate-on-scroll">
+            <div className="absolute inset-0 opacity-10 pointer-events-none">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full translate-x-16 -translate-y-16"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full -translate-x-8 translate-y-8"></div>
             </div>
+            <h3 className="text-2xl font-bold mb-4 relative z-10">Ready to master your studies?</h3>
+            <p className="text-base opacity-90 mb-8 relative z-10">Join 50,000+ students already elevating their academic game with Verve.</p>
+            <Link href="/cover" className="block bg-white text-coral font-bold text-base px-6 py-4 rounded-xl shadow-soft hover:bg-surface-strong active:scale-95 transition-all relative z-10 w-full">
+              Get Started Now
+            </Link>
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="bg-surface-strong pt-24 pb-12 border-t border-outline-variant/30">
-        <div className="max-w-6xl mx-auto px-6 md:px-10">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-24">
-            <div className="col-span-2">
-              <div className="text-3xl font-bold tracking-tight text-primary mb-4">CommitCraft</div>
-              <p className="text-secondary text-base max-w-xs">
-                Defining the next generation of academic productivity. Built for the modern scholar.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-sm font-bold tracking-wider uppercase mb-6">Product</h4>
-              <ul className="space-y-3 text-secondary text-sm">
-                <li><Link href="/cover" className="hover:text-primary transition-colors">Cover Generator</Link></li>
-                <li><Link href="/document" className="hover:text-primary transition-colors">AI Builder</Link></li>
-                <li><Link href="/exam" className="hover:text-primary transition-colors">Exam Master</Link></li>
-                <li><Link href="/submit" className="hover:text-primary transition-colors">Git Sync</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-sm font-bold tracking-wider uppercase mb-6">Company</h4>
-              <ul className="space-y-3 text-secondary text-sm">
-                <li><Link href="#" className="hover:text-primary transition-colors">About Us</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Careers</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Blog</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Privacy</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-sm font-bold tracking-wider uppercase mb-6">Support</h4>
-              <ul className="space-y-3 text-secondary text-sm">
-                <li><Link href="#" className="hover:text-primary transition-colors">Help Center</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Twitter</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">LinkedIn</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Status</Link></li>
-              </ul>
-            </div>
+      <footer className="bg-surface-strong px-6 pt-12 pb-32 border-t border-outline-variant/30 mt-8">
+        <div className="grid grid-cols-2 gap-8 mb-10 max-w-xl mx-auto">
+          <div className="flex flex-col gap-4">
+            <h5 className="text-sm font-bold text-foreground uppercase tracking-wider">Product</h5>
+            <nav className="flex flex-col gap-3">
+              <Link className="text-sm text-secondary hover:text-primary transition-colors" href="#">Features</Link>
+              <Link className="text-sm text-secondary hover:text-primary transition-colors" href="#">Templates</Link>
+              <Link className="text-sm text-secondary hover:text-primary transition-colors" href="#">Pricing</Link>
+            </nav>
           </div>
-          <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-outline-variant/30">
-            <p className="text-xs text-secondary mb-4 md:mb-0">© 2026 CommitCraft Technologies Inc. All rights reserved.</p>
-            <div className="flex items-center gap-6">
-              <Link href="#" className="text-secondary hover:text-primary"><span className="material-symbols-outlined">language</span></Link>
-              <Link href="#" className="text-secondary hover:text-primary"><span className="material-symbols-outlined">alternate_email</span></Link>
-            </div>
+          <div className="flex flex-col gap-4">
+            <h5 className="text-sm font-bold text-foreground uppercase tracking-wider">Company</h5>
+            <nav className="flex flex-col gap-3">
+              <Link className="text-sm text-secondary hover:text-primary transition-colors" href="#">About Us</Link>
+              <Link className="text-sm text-secondary hover:text-primary transition-colors" href="#">Careers</Link>
+              <Link className="text-sm text-secondary hover:text-primary transition-colors" href="#">Terms</Link>
+            </nav>
           </div>
         </div>
+        
+        <div className="flex flex-col items-center gap-6 max-w-xl mx-auto border-t border-outline-variant/30 pt-8">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-3xl">school</span>
+            <span className="font-bold text-2xl tracking-tight text-primary">Verve</span>
+          </div>
+          <p className="text-xs font-semibold text-secondary tracking-wide">© 2026 Verve Academic. All rights reserved.</p>
+        </div>
       </footer>
+
+      <BottomNav />
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-100%); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}} />
     </div>
   );
 }
