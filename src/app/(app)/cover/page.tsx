@@ -1,8 +1,133 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const PreviewA4 = ({ type, formData, groupMembers }: any) => (
+  <div
+    className="w-[595px] min-h-[841px] shrink-0 p-[50px] flex flex-col text-[#000000] bg-white print:shadow-none print:max-w-none"
+    style={{ boxShadow: '0px 4px 20px -2px rgba(28, 25, 23, 0.08)', fontFamily: 'Arial, sans-serif', lineHeight: '1.2' }}
+  >
+    {/* Logo */}
+    <div className="flex justify-center mb-6">
+      <img src="/cover_logo/LUCT.jpeg" alt="LUCT Logo" className="h-24 object-contain" />
+    </div>
+
+    {/* Faculty */}
+    <div className="text-center mb-4">
+      <h2 className="text-[16px] font-bold uppercase">{formData.faculty}</h2>
+    </div>
+
+    {/* Course Code and Title */}
+    <div className="border-y-[3px] border-black py-2 mb-6 text-center">
+      <h3 className="text-[16px] font-bold uppercase">{formData.courseCode}: {formData.courseTitle}</h3>
+    </div>
+
+    {/* Details Grid */}
+    <div className="grid grid-cols-[140px_10px_1fr] gap-y-[6px] text-[13px] mb-6 font-medium">
+      <span>Title</span><span>:</span><span>{formData.assignmentTitle}</span>
+      <span>Issue Date</span><span>:</span><span>{formData.issueDate}</span>
+      <span>Due Date</span><span>:</span><span>{formData.dueDate}</span>
+      <span>Lecturer/Examiner</span><span>:</span><span>{formData.lecturer}</span>
+      
+      {type === 'Individual' && (
+        <>
+          <span>Name of Student</span><span>:</span><span>{formData.studentName}</span>
+          <span>Student ID No.</span><span>:</span><span>{formData.studentId}</span>
+        </>
+      )}
+      
+      <span>Class</span><span>:</span><span>{formData.className}</span>
+      <span>Semester/Year</span><span>:</span><span>{formData.semester}</span>
+    </div>
+
+    {/* Attestation & Signatures / Group Table */}
+    {type === 'Individual' ? (
+      <>
+        <p className="text-[11px] leading-[1.35] text-justify mb-6">
+          I, hereby attest that contents of this attachment are my own work. Referenced works, articles, art,
+          programs, papers or parts thereof are acknowledged at the end of this paper. This includes data
+          excerpted from CD-ROMs, the Internet, other private networks, and other people's disk of the
+          computer system.
+        </p>
+        <div className="flex justify-between text-[12px] mb-1 px-1">
+          <span>Student's Signature : </span>
+          <span className="pr-16">Date:</span>
+        </div>
+      </>
+    ) : (
+      <>
+        <div className="w-full border-t border-dashed border-gray-400 my-2"></div>
+        <p className="text-[13px] mb-2">Academic Honesty Policy Statement</p>
+        <div className="w-full border-t-[3px] border-black mb-2"></div>
+        <p className="text-[11px] leading-[1.35] text-justify mb-2">
+          I/we, hereby attest that contents of this attachment are my own work. Referenced works, articles, art, programs, papers or parts thereof are acknowledged at the end of this paper. This includes data excerpted from CD-ROMs, the Internet, other private networks, and other people's disk of the computer system.
+        </p>
+        <div className="flex justify-between text-[12px] mb-2 px-1">
+          <span>Student's Signature:</span>
+          <span className="pr-[150px]">Date:</span>
+        </div>
+        
+        <table className="w-full border-collapse border-[2px] border-black text-[11px] mb-12 mt-2">
+          <thead>
+            <tr className="bg-black text-white">
+              <th className="border border-black p-1 text-center w-6"></th>
+              <th className="border border-black p-1 text-center uppercase">Name</th>
+              <th className="border border-black p-1 text-center uppercase">Surname</th>
+              <th className="border border-black p-1 text-center uppercase">ID</th>
+              <th className="border border-black p-1 text-center uppercase">Sign</th>
+            </tr>
+          </thead>
+          <tbody>
+            {groupMembers.map((member: any, idx: number) => {
+              const parts = member.name.trim().split(' ');
+              const surname = parts.length > 1 ? parts.pop() : '';
+              const name = parts.join(' ');
+              return (
+                <tr key={idx} className="font-bold">
+                  <td className="border border-black p-1 text-center font-normal">{idx + 1}</td>
+                  <td className="border border-black p-1 pl-2">{name}</td>
+                  <td className="border border-black p-1 pl-2">{surname}</td>
+                  <td className="border border-black p-1 pl-2">{member.id}</td>
+                  <td className="border border-black p-1"></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </>
+    )}
+
+    {/* Grading Box */}
+    <div className="mt-auto flex flex-1 min-h-[190px]">
+      {/* Left Side */}
+      <div className="w-[65%] border-[2px] border-black p-2">
+        <p className="text-[11px] uppercase">Lecturer's Commments/Grade:</p>
+      </div>
+      {/* Right Side (Dashed) */}
+      <div 
+        className="w-[35%] flex flex-col p-2"
+        style={{
+          borderTop: '2px solid black',
+          borderRight: '1px dashed #666',
+          borderBottom: '1px dashed #666',
+          borderLeft: 'none'
+        }}
+      >
+        <p className="text-[8px] italic text-gray-600 mb-1 leading-none">for office use only upon receive</p>
+        <p className="text-[12px]">Remark</p>
+        <div className="mt-auto flex flex-col gap-[6px] text-[11px]">
+          <p>DATE :</p>
+          <p>TIME :</p>
+          <p>RECEIVER'S NAME :</p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 export default function CoverPage() {
+  const [isClient, setIsClient] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [type, setType] = useState<'Individual' | 'Group'>('Individual');
   const [formData, setFormData] = useState({
     university: 'Limkokwing University',
@@ -19,6 +144,39 @@ export default function CoverPage() {
     studentId: '90500xxxx',
   });
 
+  const [groupMembers, setGroupMembers] = useState([
+    { name: 'John Doe', id: '123456' },
+    { name: 'Jane Smith', id: '123457' }
+  ]);
+
+  useEffect(() => {
+    setIsClient(true);
+    const savedType = localStorage.getItem('coverType');
+    const savedFormData = localStorage.getItem('coverFormData');
+    const savedMembers = localStorage.getItem('coverGroupMembers');
+    if (savedType) setType(savedType as 'Individual' | 'Group');
+    if (savedFormData) setFormData(JSON.parse(savedFormData));
+    if (savedMembers) setGroupMembers(JSON.parse(savedMembers));
+  }, []);
+
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem('coverType', type);
+      localStorage.setItem('coverFormData', JSON.stringify(formData));
+      localStorage.setItem('coverGroupMembers', JSON.stringify(groupMembers));
+    }
+  }, [type, formData, groupMembers, isClient]);
+
+  const handleMemberChange = (index: number, field: 'name' | 'id', value: string) => {
+    const newMembers = [...groupMembers];
+    newMembers[index][field] = value;
+    setGroupMembers(newMembers);
+  };
+
+  const addMember = () => {
+    setGroupMembers([...groupMembers, { name: '', id: '' }]);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -29,9 +187,9 @@ export default function CoverPage() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 h-full max-h-[85vh]">
+    <div className="flex flex-col md:flex-row gap-8 h-full max-h-[85vh] print:max-h-none print:block">
       {/* Left Pane: Input Form */}
-      <section className="w-full md:w-5/12 flex flex-col gap-6 h-full overflow-y-auto pr-2 custom-scrollbar">
+      <section className="w-full md:w-5/12 flex flex-col gap-6 h-full overflow-y-auto pr-2 custom-scrollbar print:hidden">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold text-foreground">Cover Page Details</h1>
           <p className="text-secondary text-base">Fill in your assignment information to generate a professional cover.</p>
@@ -57,18 +215,6 @@ export default function CoverPage() {
 
         <form className="flex flex-col gap-4 pb-8">
           <div className="grid grid-cols-1 gap-4">
-            {/* University Name */}
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-secondary">University Name</label>
-              <input
-                name="university"
-                className="bg-surface border border-outline-variant/30 rounded-control px-4 py-2 focus-ring focus:bg-surface-strong transition-all text-base"
-                type="text"
-                value={formData.university}
-                onChange={handleChange}
-              />
-            </div>
-
             {/* Faculty */}
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium text-secondary">Faculty</label>
@@ -178,30 +324,64 @@ export default function CoverPage() {
             </div>
 
             {/* Personal Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-secondary">Student Name</label>
-                <input
-                  name="studentName"
-                  className="bg-surface border border-outline-variant/30 rounded-control px-4 py-2 focus-ring focus:bg-surface-strong transition-all text-base"
-                  type="text"
-                  value={formData.studentName}
-                  onChange={handleChange}
-                />
+            {type === 'Individual' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-secondary">Student Name</label>
+                  <input
+                    name="studentName"
+                    className="bg-surface border border-outline-variant/30 rounded-control px-4 py-2 focus-ring focus:bg-surface-strong transition-all text-base"
+                    type="text"
+                    value={formData.studentName}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-secondary">Student ID</label>
+                  <input
+                    name="studentId"
+                    className="bg-surface border border-outline-variant/30 rounded-control px-4 py-2 focus-ring focus:bg-surface-strong transition-all text-base"
+                    type="text"
+                    value={formData.studentId}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-secondary">Student ID</label>
-                <input
-                  name="studentId"
-                  className="bg-surface border border-outline-variant/30 rounded-control px-4 py-2 focus-ring focus:bg-surface-strong transition-all text-base"
-                  type="text"
-                  value={formData.studentId}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
+            )}
           </div>
         </form>
+
+        {/* Group Members Section */}
+        {type === 'Group' && (
+          <div className="bg-surface p-6 rounded-container border border-outline-variant/30 mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-foreground">Group Members</h2>
+              <button type="button" onClick={addMember} className="text-primary text-sm font-medium flex items-center gap-1 hover:opacity-80">
+                <span className="material-symbols-outlined text-[16px]">add_circle</span> Add Member
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              {groupMembers.map((member, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={member.name}
+                    onChange={(e) => handleMemberChange(idx, 'name', e.target.value)}
+                    className="flex-1 bg-surface-strong border border-outline-variant/30 rounded-control px-3 py-2 focus-ring text-sm"
+                  />
+                  <input
+                    type="text"
+                    placeholder="ID"
+                    value={member.id}
+                    onChange={(e) => handleMemberChange(idx, 'id', e.target.value)}
+                    className="w-24 bg-surface-strong border border-outline-variant/30 rounded-control px-3 py-2 focus-ring text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Right Pane: Live Preview */}
@@ -209,7 +389,7 @@ export default function CoverPage() {
         <div className="flex justify-between items-center print:hidden">
           <h2 className="text-sm font-semibold text-secondary uppercase tracking-wider">Preview</h2>
           <div className="flex gap-2">
-            <button className="bg-secondary-container text-secondary p-2 rounded-control hover:bg-outline-variant/30 transition-colors">
+            <button onClick={() => setIsFullscreen(true)} className="bg-secondary-container text-secondary p-2 rounded-control hover:bg-outline-variant/30 transition-colors">
               <span className="material-symbols-outlined align-middle">zoom_in</span>
             </button>
             <button
@@ -224,93 +404,21 @@ export default function CoverPage() {
 
         {/* A4 Preview Container */}
         <div className="bg-surface rounded-container p-6 flex justify-center h-full overflow-y-auto print:p-0 print:bg-transparent">
-          <div
-            className="w-full max-w-[595px] p-[60px] flex flex-col text-[#000000] bg-white print:shadow-none print:max-w-none"
-            style={{ aspectRatio: '1 / 1.414', boxShadow: '0px 4px 20px -2px rgba(28, 25, 23, 0.08)', fontFamily: 'Times New Roman, serif', lineHeight: '1.2' }}
-          >
-            {/* Institutional Header */}
-            <div className="bg-black text-white px-4 py-6 mb-8 flex flex-col items-center">
-              <h3 className="font-bold text-[24px] uppercase tracking-[0.1em] text-center">{formData.university || 'UNIVERSITY NAME'}</h3>
-              <p className="text-[12px] uppercase tracking-widest mt-1 opacity-80">Of Creative Technology</p>
-            </div>
-
-            <div className="w-full h-[1px] bg-black mb-8"></div>
-
-            {/* Faculty and Course Info */}
-            <div className="text-center mb-8">
-              <p className="text-[16px] font-bold uppercase mb-1">{formData.faculty}</p>
-              <p className="text-[14px] uppercase mb-6">{formData.courseCode} {formData.courseTitle}</p>
-            </div>
-
-            {/* Assignment Title Header */}
-            <div className="text-center mb-8 border-y border-black py-4">
-              <h4 className="text-[20px] font-bold uppercase">{formData.assignmentTitle}</h4>
-            </div>
-
-            {/* Details Table */}
-            <table className="w-full text-[13px] border-collapse mb-8 text-left">
-              <tbody>
-                <tr>
-                  <td className="py-2 font-bold w-[140px] align-top">Lecturer Name</td>
-                  <td className="py-2 w-[20px] text-center align-top">:</td>
-                  <td className="py-2 align-top">{formData.lecturer}</td>
-                </tr>
-                <tr>
-                  <td className="py-2 font-bold align-top">Student Name</td>
-                  <td className="py-2 text-center align-top">:</td>
-                  <td className="py-2 align-top">{formData.studentName}</td>
-                </tr>
-                <tr>
-                  <td className="py-2 font-bold align-top">Student ID</td>
-                  <td className="py-2 text-center align-top">:</td>
-                  <td className="py-2 align-top">{formData.studentId}</td>
-                </tr>
-                <tr>
-                  <td className="py-2 font-bold align-top">Class</td>
-                  <td className="py-2 text-center align-top">:</td>
-                  <td className="py-2 align-top">{formData.className}</td>
-                </tr>
-                <tr>
-                  <td className="py-2 font-bold align-top">Date of Issue</td>
-                  <td className="py-2 text-center align-top">:</td>
-                  <td className="py-2 align-top">{formData.issueDate}</td>
-                </tr>
-                <tr>
-                  <td className="py-2 font-bold align-top">Date of Submission</td>
-                  <td className="py-2 text-center align-top">:</td>
-                  <td className="py-2 align-top">{formData.dueDate}</td>
-                </tr>
-                <tr>
-                  <td className="py-2 font-bold align-top">Semester / Year</td>
-                  <td className="py-2 text-center align-top">:</td>
-                  <td className="py-2 align-top">{formData.semester}</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <p className="text-[10px] italic text-center mb-8 px-4 opacity-80 leading-relaxed">
-              I hereby declare that this assignment is my own work and has not been submitted in any other context.
-              All sources of information and data used have been properly acknowledged.
-            </p>
-
-            {/* Grading Box */}
-            <div className="mt-auto border-2 border-black p-4 flex">
-              <div className="w-1/2 border-r border-black/30 pr-4 flex flex-col">
-                <p className="text-[11px] font-bold uppercase mb-16">Lecturer's Comments:</p>
-                <div className="mt-auto">
-                  <div className="w-full h-[1px] bg-black mb-1"></div>
-                  <p className="text-[9px] uppercase">Signature</p>
-                </div>
-              </div>
-              <div className="w-1/2 pl-4 flex flex-col items-center justify-center">
-                <p className="text-[11px] font-bold uppercase mb-4">Grade / Mark</p>
-                <div className="w-[80px] h-[80px] border border-black"></div>
-              </div>
-            </div>
-
-          </div>
+          <PreviewA4 type={type} formData={formData} groupMembers={groupMembers} />
         </div>
       </section>
+
+      {/* Fullscreen Preview Modal */}
+      {isFullscreen && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex justify-center overflow-y-auto p-8 print:hidden" onClick={() => setIsFullscreen(false)}>
+          <div className="relative h-max cursor-auto" onClick={(e) => e.stopPropagation()}>
+            <button className="absolute -top-4 -right-12 text-white hover:text-gray-300" onClick={() => setIsFullscreen(false)}>
+              <span className="material-symbols-outlined text-3xl">close</span>
+            </button>
+            <PreviewA4 type={type} formData={formData} groupMembers={groupMembers} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
