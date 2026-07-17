@@ -14,9 +14,10 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-md space-y-8 bg-surface-strong p-10 rounded-container shadow-soft">
-      <div>
+      <div className="flex flex-col items-center">
+        <img src="/verve_logo.png" alt="Verve Logo" className="h-16 w-auto mb-2" />
         <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-foreground">
-          Sign in to CommitCraft
+          Sign in to Verve
         </h2>
         <p className="mt-2 text-center text-sm text-secondary">
           Welcome back to your academic workspace

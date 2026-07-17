@@ -14,12 +14,13 @@ export default function SignupPage() {
 
   return (
     <div className="w-full max-w-md space-y-8 bg-surface-strong p-10 rounded-container shadow-soft">
-      <div>
+      <div className="flex flex-col items-center">
+        <img src="/verve_logo.png" alt="Verve Logo" className="h-16 w-auto mb-2" />
         <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-foreground">
           Create an account
         </h2>
         <p className="mt-2 text-center text-sm text-secondary">
-          Join CommitCraft to assemble your assignments
+          Join Verve to assemble your assignments
         </p>
       </div>
       <form className="mt-8 space-y-6" onSubmit={handleSignup}>

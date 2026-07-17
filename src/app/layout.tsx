@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'CommitCraft Verve',
+  title: 'Verve',
   description:
     'A calm, premium workspace for university students to assemble assignments, turn slides into study material, and submit finished work.',
   manifest: '/manifest.json',

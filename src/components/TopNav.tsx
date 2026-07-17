@@ -6,8 +6,8 @@ import { usePathname } from 'next/navigation';
 const NAV_ITEMS = [
   { href: '/cover', label: 'Cover Page' },
   { href: '/document', label: 'Document Builder' },
-  { href: '/exam', label: 'Exam & Slide Master' },
-  { href: '/submit', label: 'Submission & Git' },
+  // { href: '/exam', label: 'Exam & Slide Master' },
+  // { href: '/submit', label: 'Submission & Git' },
 ] as const;
 
 export function TopNav() {
@@ -18,9 +18,10 @@ export function TopNav() {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <Link
           href="/cover"
-          className="text-lg font-semibold tracking-tight text-foreground focus-ring rounded-control"
+          className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground focus-ring rounded-control"
         >
-          CommitCraft
+          <img src="/verve_logo.png" alt="Verve Logo" className="h-8 w-auto" />
+          {/* <span className="hidden sm:inline">Verve</span> */}
         </Link>
 
         <nav className="flex flex-wrap items-center gap-1 sm:gap-2" aria-label="Primary">
