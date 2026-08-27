@@ -2,12 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { AccountMenu } from '@/components/AccountMenu';
 
 const NAV_ITEMS = [
   { href: '/cover', label: 'Cover Page' },
   { href: '/document', label: 'Document Builder' },
-  // { href: '/exam', label: 'Exam & Slide Master' },
-  // { href: '/submit', label: 'Submission & Git' },
 ] as const;
 
 export function TopNav() {
@@ -15,16 +14,15 @@ export function TopNav() {
 
   return (
     <header className="border-b border-outline-variant/40 bg-surface-strong">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
+      <div className="mx-auto flex max-w-6xl min-w-0 flex-wrap items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
         <Link
           href="/cover"
-          className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground focus-ring rounded-control"
+          className="flex items-center gap-2 rounded-control text-lg font-semibold tracking-tight text-foreground focus-ring"
         >
-          <img src="/verve_logo.png" alt="Verve Logo" className="h-8 w-auto" />
-          {/* <span className="hidden sm:inline">Verve</span> */}
+          <img src="/verve_logo.png" alt="Verve" className="h-8 w-auto" />
         </Link>
 
-        <nav className="flex flex-wrap items-center gap-1 sm:gap-2" aria-label="Primary">
+        <nav className="hidden flex-wrap items-center gap-1 sm:gap-2 md:flex" aria-label="Primary">
           {NAV_ITEMS.map((item) => {
             const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
             return (
@@ -48,13 +46,20 @@ export function TopNav() {
               </Link>
             );
           })}
+          <Link
+            href="/feedback"
+            className={
+              'rounded-control px-3 py-2 text-sm font-medium transition-colors focus-ring ' +
+              (pathname === '/feedback' || pathname?.startsWith('/feedback/')
+                ? 'text-primary'
+                : 'text-secondary hover:text-foreground')
+            }
+          >
+            Feedback
+          </Link>
         </nav>
 
-        {/* Account menu (avatar + sign out) is wired up in Issue 2 — Auth */}
-        <div
-          className="h-8 w-8 shrink-0 rounded-full bg-secondary-container"
-          aria-hidden="true"
-        />
+        <AccountMenu />
       </div>
     </header>
   );

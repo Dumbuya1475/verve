@@ -6,15 +6,14 @@ import { usePathname } from 'next/navigation';
 const NAV_ITEMS = [
   { href: '/cover', label: 'Cover', icon: 'description' },
   { href: '/document', label: 'Builder', icon: 'edit_note' },
-  // { href: '/exam', label: 'Master', icon: 'quiz' },
-  // { href: '/submit', label: 'Git', icon: 'terminal' },
+  { href: '/feedback', label: 'Feedback', icon: 'chat' },
 ] as const;
 
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-2 pb-safe bg-surface shadow-[0px_-4px_20px_-2px_rgba(28,25,23,0.08)] z-50 print:hidden">
+    <nav className="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] bg-surface shadow-[0px_-4px_20px_-2px_rgba(28,25,23,0.08)] z-50 print:hidden">
       {NAV_ITEMS.map((item) => {
         const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
 

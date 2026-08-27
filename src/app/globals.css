@@ -56,9 +56,19 @@
   --radius-container: 1rem;   /* 16px — modals, prominent cards */
 }
 
+html,
+body {
+  overflow-x: hidden;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--outline-variant) transparent;
 }
 
 /* Soft ambient shadow — see DESIGN.md > Elevation & Depth */

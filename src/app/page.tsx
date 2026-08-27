@@ -27,18 +27,23 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-background font-sans pb-20 md:pb-0">
+    <div className="flex flex-col min-h-screen min-w-0 overflow-x-hidden bg-background font-sans pb-20 md:pb-0">
       
       {/* Top Header */}
-      <header className="bg-background/200 backdrop-blur-md sticky top-0 z-50">
+      <header className="bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
           <div className="flex items-center gap-2">
             <img src="/verve_logo.png" alt="Verve Logo" className="h-8 w-auto" />
             {/* <span className="font-bold text-xl tracking-tight text-primary">Verve</span> */}
           </div>
-          <Link href="/cover" className="bg-primary text-primary-foreground text-sm font-semibold px-4 py-2 rounded-control hover:scale-105 active:scale-95 transition-all shadow-soft">
-            Try Verve
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/login" className="rounded-control px-3 py-2 text-sm font-medium text-secondary hover:text-foreground focus-ring">
+              Sign in
+            </Link>
+            <Link href="/signup" className="bg-primary text-primary-foreground text-sm font-semibold px-4 py-2 rounded-control hover:scale-105 active:scale-95 transition-all shadow-soft">
+              Try Verve
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -60,7 +65,7 @@ export default function LandingPage() {
             </p>
             
             <div className="flex flex-col sm:flex-row w-full lg:w-auto gap-4 justify-center lg:justify-start">
-              <Link href="/cover" className="bg-primary text-primary-foreground font-semibold text-base py-3.5 px-8 rounded-xl shadow-soft hover:brightness-110 active:scale-95 transition-all w-full sm:w-auto text-center">
+              <Link href="/signup" className="bg-primary text-primary-foreground font-semibold text-base py-3.5 px-8 rounded-xl shadow-soft hover:brightness-110 active:scale-95 transition-all w-full sm:w-auto text-center">
                 Get Started Free
               </Link>
               <Link href="/document" className="bg-surface-strong text-foreground font-semibold text-base py-3.5 px-8 rounded-xl hover:bg-surface border border-outline-variant/30 active:scale-95 transition-all w-full sm:w-auto text-center">
@@ -164,7 +169,7 @@ export default function LandingPage() {
             </div>
             <h3 className="text-3xl text-foreground lg:text-4xl font-bold mb-4 relative z-10 tracking-tight">Ready to master your studies?</h3>
             <p className="text-lg text-surface opacity-90 mb-10 relative z-10 max-w-lg">Join 50,000+ students already elevating their academic game with Verve.</p>
-            <Link href="/cover" className="block sm:inline-block bg-surface-strong text-secondary font-bold text-base md:text-lg px-10 py-4 rounded-xl shadow-soft hover:bg-surface-strong active:scale-95 transition-all relative z-10 w-full sm:w-auto">
+            <Link href="/signup" className="block sm:inline-block bg-surface-strong text-secondary font-bold text-base md:text-lg px-10 py-4 rounded-xl shadow-soft hover:bg-surface-strong active:scale-95 transition-all relative z-10 w-full sm:w-auto">
               Get Started Now
             </Link>
           </div>
@@ -182,7 +187,7 @@ export default function LandingPage() {
               <span className="font-bold text-3xl tracking-tight text-primary">Verve</span>
             </div>
             <p className="text-sm text-secondary max-w-sm">The premier academic productivity platform designed for students who demand excellence in every assignment.</p>
-            <p className="text-xs font-semibold text-secondary tracking-wide mt-auto pt-4">© 2026 Verve Academic. All rights reserved.</p>
+            <p className="text-xs font-semibold text-secondary tracking-wide mt-auto pt-4">© 2026 Verve. Open source under MIT.</p>
           </div>
 
           {/* Links Columns */}
@@ -206,11 +211,20 @@ export default function LandingPage() {
               </nav>
             </div>
             <div className="flex flex-col gap-5 col-span-2 sm:col-span-1">
-              <h5 className="text-sm font-bold text-foreground uppercase tracking-wider">Legal</h5>
+              <h5 className="text-sm font-bold text-foreground uppercase tracking-wider">Support</h5>
               <nav className="flex flex-col gap-3">
-                <Link className="text-sm text-secondary hover:text-primary transition-colors" href="#">Terms</Link>
-                <Link className="text-sm text-secondary hover:text-primary transition-colors" href="#">Privacy</Link>
-                <Link className="text-sm text-secondary hover:text-primary transition-colors" href="#">Security</Link>
+                <Link className="text-sm text-secondary hover:text-primary transition-colors" href="/feedback">Feedback</Link>
+                <Link className="text-sm text-secondary hover:text-primary transition-colors" href="/cover">Cover pages</Link>
+                {process.env.NEXT_PUBLIC_BUY_ME_A_COFFEE_URL ? (
+                  <a
+                    className="text-sm text-secondary hover:text-primary transition-colors"
+                    href={process.env.NEXT_PUBLIC_BUY_ME_A_COFFEE_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Buy me a coffee
+                  </a>
+                ) : null}
               </nav>
             </div>
           </div>
