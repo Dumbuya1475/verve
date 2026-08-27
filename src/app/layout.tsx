@@ -51,9 +51,9 @@ export default function RootLayout({
       </head>
       <body className="flex min-h-full flex-col font-sans">
         <AuthProvider>
+          <ServiceWorkerRegister />
           {children}
           <InstallPrompt />
-          <ServiceWorkerRegister />
         </AuthProvider>
       </body>
     </html>

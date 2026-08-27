@@ -1,6 +1,9 @@
-# Verve (CommitCraft)
+# Verve
 
 A calm academic workspace for **university students in Sierra Leone** — not a developer tool.
+
+**Source:** [github.com/Dumbuya1475/verve](https://github.com/Dumbuya1475/verve)  
+Clone: `https://github.com/Dumbuya1475/verve.git`
 
 Students fill in an assignment cover page (Individual or Group), preview it against the faculty layout, and export PDF or Word. Later work may add a document body, study material from slides, and gated submit flows. This repository is the cover-page product plus account, feedback, and installable PWA support.
 
@@ -100,7 +103,7 @@ The link appears in the account menu, on the [Feedback](/feedback) page, and in 
 
 Next.js on Vercel needs no extra `vercel.json` for this app.
 
-1. Push the repo to GitHub.
+1. Push to [github.com/Dumbuya1475/verve](https://github.com/Dumbuya1475/verve) (or fork it).
 2. In [Vercel](https://vercel.com/), **Add New → Project** and import the GitHub repo.
 3. Framework preset: Next.js (auto-detected).
 4. Add the same env vars as `.env.local.example` (at least the `NEXT_PUBLIC_FIREBASE_*` keys, plus Buy Me a Coffee if you use it).
@@ -126,4 +129,4 @@ Students and contributors can send a note at `/feedback` (also in the account me
 
 ## License
 
-[MIT](./LICENSE). Contributions are welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md).
+[MIT](./LICENSE). The project is public at [github.com/Dumbuya1475/verve](https://github.com/Dumbuya1475/verve). Contributions are welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md).

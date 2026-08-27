@@ -1,14 +1,38 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getFirebaseWebConfig } from '@/lib/firebase/config';
-import {
-  SESSION_COOKIE,
-  isAuthPath,
-  isProtectedPath,
-} from '@/lib/firebase/session';
+
+const SESSION_COOKIE = 'firebase-auth'; // keep in sync with src/lib/firebase/constants.ts
+
+const PROTECTED_PREFIXES = ['/document', '/exam', '/submit'];
+
+function firebaseConfigured(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY?.trim() &&
+      process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN?.trim() &&
+      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID?.trim() &&
+      process.env.NEXT_PUBLIC_FIREBASE_APP_ID?.trim(),
+  );
+}
+
+function isProtectedPath(pathname: string): boolean {
+  return PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
+function isAuthPath(pathname: string): boolean {
+  return (
+    pathname === '/login' ||
+    pathname === '/signup' ||
+    pathname === '/forgot-password' ||
+    pathname.startsWith('/login/') ||
+    pathname.startsWith('/signup/') ||
+    pathname.startsWith('/forgot-password/')
+  );
+}
 
 export function proxy(request: NextRequest) {
-  if (!getFirebaseWebConfig()) {
+  if (!firebaseConfigured()) {
     return NextResponse.next();
   }
 
@@ -30,6 +54,11 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|_next/webpack-hmr|favicon.ico|icon.svg|sw.js|manifest.json|manifest.webmanifest|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    '/document/:path*',
+    '/exam/:path*',
+    '/submit/:path*',
+    '/login',
+    '/signup',
+    '/forgot-password',
   ],
 };

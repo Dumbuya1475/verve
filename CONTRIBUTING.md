@@ -4,9 +4,16 @@ Thank you for helping a student-facing academic app. This is not a developer IDE
 
 ## Before you start
 
-1. Read [`README.md`](./README.md) for setup (Firebase, Vercel, PWA).
-2. Read [`DESIGN.md`](./DESIGN.md) and use tokens from `src/app/globals.css` (`bg-background`, `text-primary`, `rounded-control`, `shadow-soft`, …).
-3. Read [`AGENTS.md`](./AGENTS.md) for stack conventions. **Auth is Firebase**, not Supabase Auth.
+1. Fork or clone [github.com/Dumbuya1475/verve](https://github.com/Dumbuya1475/verve):
+
+   ```bash
+   git clone https://github.com/Dumbuya1475/verve.git
+   cd verve
+   ```
+
+2. Read [`README.md`](./README.md) for setup (Firebase, Vercel, PWA).
+3. Read [`DESIGN.md`](./DESIGN.md) and use tokens from `src/app/globals.css` (`bg-background`, `text-primary`, `rounded-control`, `shadow-soft`, …).
+4. Read [`AGENTS.md`](./AGENTS.md) for stack conventions. **Auth is Firebase**, not Supabase Auth.
 
 ## Local loop
 

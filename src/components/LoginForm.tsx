@@ -10,16 +10,12 @@ import {
 } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase/client';
 import { isFirebaseConfigured } from '@/lib/firebase/config';
+import { safeNextPath } from '@/lib/firebase/constants';
 import { friendlyAuthError } from '@/lib/firebase/errors';
 import { useAuth } from '@/components/AuthProvider';
 
 const inputClass =
   'relative block w-full rounded-control border border-outline-variant/50 bg-surface px-3 py-2 text-foreground focus:bg-surface-strong focus-ring sm:text-sm';
-
-function safeNextPath(value: string | null): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/cover';
-  return value;
-}
 
 export function LoginForm() {
   const router = useRouter();
@@ -162,7 +158,7 @@ export function LoginForm() {
       <p className="text-center text-sm">
         <span className="text-secondary">Don&apos;t have an account? </span>
         <Link
-          href="/signup"
+          href={searchParams.get('next') ? `/signup?next=${encodeURIComponent(searchParams.get('next') ?? '')}` : '/signup'}
           className="font-medium text-primary hover:text-primary-container focus-ring rounded-control"
         >
           Sign up

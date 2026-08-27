@@ -1,8 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
 import { CoverPreview } from '@/components/CoverPreview';
 import { exportCoverPdf, exportCoverWord } from '@/lib/cover/export';
+import {
+  GUEST_EXPORT_LIMIT,
+  canGuestExport,
+  recordGuestExport,
+  remainingGuestExports,
+} from '@/lib/cover/exportQuota';
 import type { CoverFormData, CoverType, GroupMember } from '@/lib/cover/types';
 
 const DEFAULT_FORM: CoverFormData = {
@@ -15,7 +24,7 @@ const DEFAULT_FORM: CoverFormData = {
   dueDate: 'WEEK 4',
   lecturer: 'Mr. Ahmed Jeli Kamara',
   className: 'DIT1202F',
-  semester: '2 of 1',
+  semester: '1 / 1',
   studentName: 'Mohamed Super Dumbuya',
   studentId: '90500638',
 };
@@ -24,6 +33,8 @@ const inputClass =
   'w-full min-w-0 bg-surface border border-outline-variant/30 rounded-control px-4 py-2.5 focus-ring focus:bg-surface-strong transition-all text-base';
 
 export default function CoverPage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [isClient, setIsClient] = useState(false);
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -32,6 +43,7 @@ export default function CoverPage() {
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([{ name: 'John Doe', id: '123456' }]);
   const [exporting, setExporting] = useState<'pdf' | 'word' | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [guestRemaining, setGuestRemaining] = useState(GUEST_EXPORT_LIMIT);
 
   useEffect(() => {
     setIsClient(true);
@@ -48,6 +60,7 @@ export default function CoverPage() {
     } catch {
       // Keep defaults if saved data is unreadable.
     }
+    setGuestRemaining(remainingGuestExports());
   }, []);
 
   useEffect(() => {
@@ -79,14 +92,27 @@ export default function CoverPage() {
   };
 
   const runExport = async (kind: 'pdf' | 'word') => {
-    if (exporting) return;
+    if (exporting || authLoading) return;
     setExportError(null);
+
+    if (!user && !canGuestExport()) {
+      setExportError(
+        `You have used your ${GUEST_EXPORT_LIMIT} free exports. Create an account to keep downloading.`,
+      );
+      router.push('/signup?next=/cover');
+      return;
+    }
+
     setExporting(kind);
     try {
       if (kind === 'pdf') {
         await exportCoverPdf({ type, formData, groupMembers });
       } else {
         await exportCoverWord({ type, formData, groupMembers });
+      }
+      if (!user) {
+        recordGuestExport();
+        setGuestRemaining(remainingGuestExports());
       }
     } catch (error) {
       console.error(error);
@@ -137,8 +163,20 @@ export default function CoverPage() {
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">Cover Page Details</h1>
           <p className="mt-1 text-secondary text-sm sm:text-base">
-            Fill in your assignment information to generate a professional cover.
+            Fill in your assignment details, then export a PDF or Word cover that matches the faculty template.
           </p>
+          {!user && isClient ? (
+            <p className="mt-2 text-sm text-secondary">
+              {guestRemaining > 0
+                ? `${guestRemaining} free export${guestRemaining === 1 ? '' : 's'} left without an account.`
+                : 'Free exports used. Create an account to download again.'}{' '}
+              {guestRemaining === 0 ? (
+                <Link href="/signup?next=/cover" className="font-medium text-primary focus-ring rounded-control">
+                  Create an account
+                </Link>
+              ) : null}
+            </p>
+          ) : null}
         </div>
         <div className="hidden lg:block">{exportButtons}</div>
       </div>

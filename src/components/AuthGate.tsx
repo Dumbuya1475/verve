@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
-import { isProtectedPath } from '@/lib/firebase/session';
+import { isProtectedPath } from '@/lib/firebase/constants';
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading, configured } = useAuth();

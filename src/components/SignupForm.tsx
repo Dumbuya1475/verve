@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase/client';
 import { isFirebaseConfigured } from '@/lib/firebase/config';
+import { safeNextPath } from '@/lib/firebase/constants';
 import { friendlyAuthError } from '@/lib/firebase/errors';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -19,6 +20,7 @@ const inputClass =
 
 export function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { refreshSessionCookie } = useAuth();
   const configured = isFirebaseConfigured();
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export function SignupForm() {
 
   async function finishSignIn(user: import('firebase/auth').User) {
     await refreshSessionCookie(user);
-    router.push('/cover');
+    router.push(safeNextPath(searchParams.get('next')));
     router.refresh();
   }
 
@@ -167,7 +169,7 @@ export function SignupForm() {
       <p className="text-center text-sm">
         <span className="text-secondary">Already have an account? </span>
         <Link
-          href="/login"
+          href={searchParams.get('next') ? `/login?next=${encodeURIComponent(searchParams.get('next') ?? '')}` : '/login'}
           className="font-medium text-primary hover:text-primary-container focus-ring rounded-control"
         >
           Sign in

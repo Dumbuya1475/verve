@@ -4,8 +4,9 @@ import { useEffect } from 'react';
 
 export function ServiceWorkerRegister() {
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'production') return;
     if (!('serviceWorker' in navigator)) return;
+    // Chrome only offers Install after a service worker controls the page.
+    // Register on localhost too so the Install button can work in development.
 
     const register = async () => {
       try {

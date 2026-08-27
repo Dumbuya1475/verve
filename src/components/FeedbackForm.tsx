@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { SupportLinks } from '@/components/SupportLinks';
 import { hasBuyMeACoffee } from '@/lib/site';
@@ -37,7 +38,7 @@ export function FeedbackForm() {
         return;
       }
       setStatus('success');
-      setMessage('Thank you. Your note is in. We read every message.');
+      setMessage('Thank you. Your note is saved for the Verve team to read. It is not posted publicly.');
       form.reset();
     } catch {
       setStatus('error');
@@ -48,11 +49,30 @@ export function FeedbackForm() {
   return (
     <div className="mx-auto w-full max-w-xl space-y-8">
       <div>
+        <Link
+          href="/"
+          className="mb-4 inline-flex items-center gap-1 rounded-control text-sm font-medium text-secondary hover:text-foreground focus-ring"
+        >
+          <span className="material-symbols-outlined text-[18px]" aria-hidden>
+            arrow_back
+          </span>
+          Back to home
+        </Link>
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">Support</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">Send feedback</h1>
         <p className="mt-3 text-base leading-relaxed text-secondary">
           Tell us what is working, what is confusing, or what your faculty still needs on a cover
           page. Signed-in students do not need to re-enter a name.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-secondary">
+          Messages are stored privately in the Verve Firebase project (Firestore collection{' '}
+          <span className="font-medium text-foreground">feedback</span>). Only project owners can
+          open them in the Firebase console. They are not shown on this site.
+        </p>
+        <p className="mt-3 text-sm">
+          <Link href="/cover" className="font-medium text-primary focus-ring rounded-control">
+            Go to cover pages
+          </Link>
         </p>
       </div>
 

@@ -9,8 +9,9 @@ const ATTESTATION_GROUP =
 export const COVER_PAGE_CSS = `
 .verve-cover, .verve-cover * { box-sizing: border-box; }
 .verve-cover {
-  width: 100%;
-  height: 100%;
+  width: 210mm;
+  min-height: 297mm;
+  height: 297mm;
   margin: 0;
   padding: 1in;
   display: flex;
@@ -20,6 +21,7 @@ export const COVER_PAGE_CSS = `
   color: #000000;
   background: #ffffff;
   line-height: 1.5;
+  overflow: hidden;
 }
 .verve-cover .vc-body { flex: 0 1 auto; }
 .verve-cover .vc-center { text-align: center; }
@@ -36,30 +38,25 @@ export const COVER_PAGE_CSS = `
   font-size: 13.5pt;
   font-weight: 700;
   text-transform: uppercase;
-  margin: 0 0 0.14in;
+  margin: 0 0 0.2in;
 }
-.verve-cover table.vc-course {
-  width: 100%;
-  border-collapse: collapse;
-  border-spacing: 0;
-  border-top: 2pt solid #000;
-  border-bottom: 2pt solid #000;
-  border-left: none;
-  border-right: none;
+.verve-cover .vc-course {
   margin: 0 0 0.18in;
 }
-.verve-cover table.vc-course td {
-  border: none;
-  padding: 0.12in 0;
-  text-align: center;
-  vertical-align: middle;
+.verve-cover .vc-course-rule {
+  height: 3pt;
+  background: #000;
+  width: 100%;
 }
-.verve-cover table.vc-course h3 {
+.verve-cover .vc-course h3 {
   font-family: Tahoma, sans-serif;
   font-size: 16pt;
   font-weight: 700;
   text-transform: uppercase;
   margin: 0;
+  padding: 0.12in 0;
+  line-height: 1.2;
+  text-align: center;
 }
 .verve-cover table.vc-details,
 .verve-cover table.vc-sig {
@@ -110,7 +107,7 @@ export const COVER_PAGE_CSS = `
   margin: 0 0 0.12in;
 }
 .verve-cover table.vc-sig {
-  margin: 0;
+  margin: 0 0 0.04in;
 }
 .verve-cover table.vc-sig td {
   padding: 0;
@@ -132,7 +129,7 @@ export const COVER_PAGE_CSS = `
   border-collapse: collapse;
   border: 1pt solid #000;
   font-size: 10pt;
-  margin: 0.1in 0 0;
+  margin: 0.08in 0 0.04in;
 }
 .verve-cover table.vc-gt thead tr { background: #000; color: #fff; }
 .verve-cover table.vc-gt th,
@@ -148,8 +145,8 @@ export const COVER_PAGE_CSS = `
 .verve-cover .vc-center-cell { text-align: center; }
 .verve-cover .vc-grading {
   display: flex;
-  min-height: 1.7in;
-  margin-top: 0.18in;
+  min-height: 1.55in;
+  margin-top: 0.06in;
 }
 .verve-cover .vc-grading-left {
   width: 65%;
@@ -292,7 +289,11 @@ export function buildCoverInnerHtml({
     <div class="vc-body">
       <img class="vc-logo" src="${escapeHtml(logoSrc)}" alt="Limkokwing University of Creative Technology Sierra Leone logo" />
       ${faculty ? `<p class="vc-faculty vc-center">${escapeHtml(faculty)}</p>` : ''}
-      <table class="vc-course"><tr><td><h3>${escapeHtml(courseLine)}</h3></td></tr></table>
+      <div class="vc-course">
+        <div class="vc-course-rule"></div>
+        <h3>${escapeHtml(courseLine)}</h3>
+        <div class="vc-course-rule"></div>
+      </div>
       <table class="vc-details">
         ${detailRow('Title', formData.assignmentTitle)}
         ${detailRow('Issue Date', formatCoverDate(formData.issueDate))}

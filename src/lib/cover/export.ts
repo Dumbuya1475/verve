@@ -43,8 +43,29 @@ function unwrapDefault<T>(mod: { default?: T } | T): T {
 }
 
 async function downloadBlob(blob: Blob, filename: string) {
-  const { saveAs } = await import('file-saver');
-  saveAs(blob, filename);
+  const fileSaver = unwrapDefault(await import('file-saver')) as
+    | ((data: Blob, name: string) => void)
+    | { saveAs?: (data: Blob, name: string) => void };
+
+  const saveAs =
+    typeof fileSaver === 'function'
+      ? fileSaver
+      : fileSaver?.saveAs;
+
+  if (typeof saveAs === 'function') {
+    saveAs(blob, filename);
+    return;
+  }
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.rel = 'noopener';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
 async function waitForImages(doc: globalThis.Document): Promise<void> {
@@ -121,20 +142,22 @@ export async function exportCoverPdf(params: {
     const html2canvas = unwrapDefault(html2canvasMod);
     const { jsPDF } = await import('jspdf');
 
-    const target = iframe.contentDocument?.body;
+    const target = iframe.contentDocument?.querySelector('.verve-cover') ?? iframe.contentDocument?.body;
     if (!target) {
       throw new Error('Could not find the cover page to export.');
     }
 
-    const canvas = await html2canvas(target, {
+    const canvas = await html2canvas(target as HTMLElement, {
       scale: 2,
       useCORS: true,
       backgroundColor: '#ffffff',
-      width: target.scrollWidth || A4_WIDTH_PX,
-      height: target.scrollHeight || A4_HEIGHT_PX,
-      windowWidth: target.scrollWidth || A4_WIDTH_PX,
-      windowHeight: target.scrollHeight || A4_HEIGHT_PX,
+      width: A4_WIDTH_PX,
+      height: A4_HEIGHT_PX,
+      windowWidth: A4_WIDTH_PX,
+      windowHeight: A4_HEIGHT_PX,
       logging: false,
+      scrollX: 0,
+      scrollY: 0,
     });
 
     const image = canvas.toDataURL('image/jpeg', 0.98);
@@ -146,17 +169,27 @@ export async function exportCoverPdf(params: {
   }
 }
 
-const noneBorder: IBorderOptions = { style: BorderStyle.NONE, size: 0, color: 'auto' };
+const noneBorder: IBorderOptions = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+const ghostBorder: IBorderOptions = { style: BorderStyle.SINGLE, size: 1, color: 'FFFFFF' };
 const dashedBorder: IBorderOptions = { style: BorderStyle.DASHED, size: 4, color: '000000' };
 const solidBorder: IBorderOptions = { style: BorderStyle.SINGLE, size: 8, color: '000000' };
-const courseRule: IBorderOptions = { style: BorderStyle.SINGLE, size: 18, color: '000000' };
+const courseRule: IBorderOptions = { style: BorderStyle.SINGLE, size: 24, color: '000000' };
 const hairline: IBorderOptions = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
 
-const noneCellBorders: ITableCellBorders = {
-  top: noneBorder,
-  bottom: noneBorder,
-  left: noneBorder,
-  right: noneBorder,
+const ghostTableBorders = {
+  top: ghostBorder,
+  bottom: ghostBorder,
+  left: ghostBorder,
+  right: ghostBorder,
+  insideHorizontal: ghostBorder,
+  insideVertical: ghostBorder,
+};
+
+const ghostCellBorders: ITableCellBorders = {
+  top: ghostBorder,
+  bottom: ghostBorder,
+  left: ghostBorder,
+  right: ghostBorder,
 };
 
 const PAGE_CONTENT_DXA = 9026;
@@ -207,7 +240,7 @@ function bodyParagraph(text: string, extra?: { bold?: boolean; after?: number; b
 function hiddenCell(width: number, paragraph: Paragraph, extra?: { margins?: { top: number; bottom: number; left: number; right: number } }) {
   return new TableCell({
     width: { size: width, type: WidthType.DXA },
-    borders: noneCellBorders,
+    borders: ghostCellBorders,
     margins: extra?.margins ?? { top: 0, bottom: 0, left: 0, right: 0 },
     children: [paragraph],
   });
@@ -218,7 +251,7 @@ function detailsTable(rows: { label: string; value: string }[]) {
     width: { size: PAGE_CONTENT_DXA, type: WidthType.DXA },
     columnWidths: [LABEL_DXA, COLON_DXA, VALUE_DXA],
     layout: TableLayoutType.FIXED,
-    borders: TableBorders.NONE,
+    borders: ghostTableBorders,
     margins: { top: 0, bottom: 0, left: 0, right: 0 },
     rows: rows.map(
       (row) =>
@@ -243,10 +276,10 @@ function courseTable(text: string) {
     borders: {
       top: courseRule,
       bottom: courseRule,
-      left: noneBorder,
-      right: noneBorder,
-      insideHorizontal: noneBorder,
-      insideVertical: noneBorder,
+      left: ghostBorder,
+      right: ghostBorder,
+      insideHorizontal: ghostBorder,
+      insideVertical: ghostBorder,
     },
     margins: { top: 0, bottom: 0, left: 0, right: 0 },
     rows: [
@@ -254,17 +287,23 @@ function courseTable(text: string) {
         children: [
           new TableCell({
             width: { size: PAGE_CONTENT_DXA, type: WidthType.DXA },
+            verticalAlign: VerticalAlign.CENTER,
             borders: {
               top: courseRule,
               bottom: courseRule,
-              left: noneBorder,
-              right: noneBorder,
+              left: ghostBorder,
+              right: ghostBorder,
             },
-            margins: { top: 120, bottom: 120, left: 0, right: 0 },
+            margins: { top: 60, bottom: 60, left: 0, right: 0 },
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                spacing: LINE_1_5,
+                spacing: {
+                  before: 0,
+                  after: 0,
+                  line: 340,
+                  lineRule: LineRuleType.EXACT,
+                },
                 children: [new TextRun({ text, font: FONT, size: SIZE_COURSE, bold: true })],
               }),
             ],
@@ -282,13 +321,13 @@ function signatureTable(label: string) {
     width: { size: PAGE_CONTENT_DXA, type: WidthType.DXA },
     columnWidths: [leftWidth, rightWidth],
     layout: TableLayoutType.FIXED,
-    borders: TableBorders.NONE,
+    borders: ghostTableBorders,
     margins: { top: 0, bottom: 0, left: 0, right: 0 },
     rows: [
       new TableRow({
         children: [
-          hiddenCell(leftWidth, bodyParagraph(label, { before: 40, after: 80 })),
-          hiddenCell(rightWidth, bodyParagraph('Date:', { before: 40, after: 80 })),
+          hiddenCell(leftWidth, bodyParagraph(label, { before: 20, after: 20 })),
+          hiddenCell(rightWidth, bodyParagraph('Date:', { before: 20, after: 20 })),
         ],
       }),
     ],
@@ -471,7 +510,7 @@ export async function exportCoverWord(params: {
   const rightWidth = PAGE_CONTENT_DXA - leftWidth;
 
   children.push(
-    new Paragraph({ spacing: { before: 160, after: 0 }, children: [] }),
+    new Paragraph({ spacing: { before: 40, after: 0 }, children: [] }),
     new Table({
       width: { size: PAGE_CONTENT_DXA, type: WidthType.DXA },
       columnWidths: [leftWidth, rightWidth],

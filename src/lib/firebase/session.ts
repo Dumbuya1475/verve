@@ -1,44 +1,12 @@
-export const SESSION_COOKIE = 'firebase-auth';
-
-export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 5;
-
-export const PUBLIC_PATHS = [
-  '/',
-  '/login',
-  '/signup',
-  '/forgot-password',
-  '/feedback',
-] as const;
-
-export const PROTECTED_PREFIXES = [
-  '/cover',
-  '/document',
-  '/exam',
-  '/submit',
-] as const;
-
-export function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.some(
-    (path) => pathname === path || (path !== '/' && pathname.startsWith(`${path}/`)),
-  );
-}
-
-export function isProtectedPath(pathname: string): boolean {
-  return PROTECTED_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
-}
-
-export function isAuthPath(pathname: string): boolean {
-  return (
-    pathname === '/login' ||
-    pathname === '/signup' ||
-    pathname === '/forgot-password' ||
-    pathname.startsWith('/login/') ||
-    pathname.startsWith('/signup/') ||
-    pathname.startsWith('/forgot-password/')
-  );
-}
+export {
+  SESSION_COOKIE,
+  SESSION_MAX_AGE_SECONDS,
+  PUBLIC_PATHS,
+  PROTECTED_PREFIXES,
+  isPublicPath,
+  isProtectedPath,
+  isAuthPath,
+} from './constants';
 
 export type SessionUser = {
   uid: string;
