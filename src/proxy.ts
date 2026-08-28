@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 const SESSION_COOKIE = 'firebase-auth'; // keep in sync with src/lib/firebase/constants.ts
 
-const PROTECTED_PREFIXES = ['/document', '/exam', '/submit'];
+const PROTECTED_PREFIXES = ['/exam', '/submit'];
 
 function firebaseConfigured(): boolean {
   return Boolean(
@@ -54,7 +54,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/document/:path*',
     '/exam/:path*',
     '/submit/:path*',
     '/login',

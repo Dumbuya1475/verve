@@ -5,6 +5,7 @@ export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 5;
 export const PUBLIC_PATHS = [
   '/',
   '/cover',
+  '/document',
   '/login',
   '/signup',
   '/forgot-password',
@@ -12,7 +13,6 @@ export const PUBLIC_PATHS = [
 ] as const;
 
 export const PROTECTED_PREFIXES = [
-  '/document',
   '/exam',
   '/submit',
 ] as const;

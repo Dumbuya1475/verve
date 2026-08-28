@@ -1,174 +1,109 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { BottomNav } from '@/components/BottomNav';
-import { COVER_LOGO_PATH } from '@/lib/cover/types';
-import { BUY_ME_A_COFFEE_URL, GITHUB_REPO_URL, hasBuyMeACoffee } from '@/lib/site';
-
-const TICKER_ITEMS = [
-  'Verve',
-  'Cover pages',
-  'PDF export',
-  'Word export',
-  'Limkokwing',
-  'Sierra Leone',
-  'Open source',
-];
+import { GITHUB_REPO_URL } from '@/lib/site';
 
 export default function LandingPage() {
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('opacity-100', 'translate-y-0');
+            entry.target.classList.remove('opacity-0', 'translate-y-4');
+          }
+        });
+      },
+      { threshold: 0.1 },
+    );
+
+    document.querySelectorAll('.animate-on-scroll').forEach((el) => {
+      el.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-4');
+      observerRef.current?.observe(el);
+    });
+
+    return () => observerRef.current?.disconnect();
+  }, []);
+
   return (
-    <div className="flex min-h-screen min-w-0 flex-col overflow-x-hidden bg-background pb-24 font-sans md:pb-8">
-      <section className="flex min-h-dvh w-full flex-col bg-surface-strong">
-          <header className="flex items-center justify-between gap-4 px-5 py-5 sm:px-8 lg:px-12">
-            <Link href="/" className="flex shrink-0 items-center rounded-full focus-ring">
-              <img src="/verve_logo.png" alt="Verve" className="h-8 w-auto" />
+    <div className="flex min-h-screen min-w-0 flex-col overflow-x-hidden bg-background pb-20 font-sans md:pb-0">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <Link href="/" className="rounded-control focus-ring">
+            <img src="/verve_logo.png" alt="Verve" className="h-8 w-auto" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <a
+              href={GITHUB_REPO_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-control px-3 py-2 text-sm font-medium text-secondary hover:text-foreground focus-ring"
+            >
+              GitHub
+            </a>
+            <Link
+              href="/login"
+              className="rounded-control px-3 py-2 text-sm font-medium text-secondary hover:text-foreground focus-ring"
+            >
+              Sign in
             </Link>
-
-            <nav className="hidden items-center gap-8 text-sm font-medium text-foreground md:flex">
-              <Link href="/" className="rounded-full focus-ring hover:text-primary">
-                Home
-              </Link>
-              <Link href="/cover" className="rounded-full focus-ring hover:text-primary">
-                Cover
-              </Link>
-              <Link href="/feedback" className="rounded-full focus-ring hover:text-primary">
-                Feedback
-              </Link>
-              <a
-                href={GITHUB_REPO_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-full focus-ring hover:text-primary"
-              >
-                GitHub
-              </a>
-            </nav>
-
             <Link
               href="/signup"
-              className="rounded-full border border-outline-variant/60 px-5 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-surface focus-ring"
+              className="rounded-control bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-soft transition-all hover:scale-105 active:scale-95"
             >
               Create account
             </Link>
-          </header>
+          </div>
+        </div>
+      </header>
 
-          <div className="grid min-h-0 flex-1 items-stretch gap-8 lg:grid-cols-2 lg:gap-0">
-            <div className="flex flex-col justify-center px-5 py-6 sm:px-8 lg:px-12 lg:py-8">
-              <p className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-outline-variant/50 bg-surface px-3 py-1.5 text-xs font-semibold tracking-wide text-secondary">
-                <span className="material-symbols-outlined text-[14px] text-primary">add</span>
-                For students in Sierra Leone
-              </p>
+      <main className="flex-grow">
+        <section className="mx-auto flex max-w-7xl flex-col items-center gap-8 px-4 pb-8 pt-12 text-center lg:gap-16 lg:pb-16 lg:pt-24">
+          <div className="z-10 flex flex-col items-center">
+            {/* <div className="mb-6 inline-flex items-center gap-1.5 rounded-full bg-secondary-container px-4 py-1.5 text-secondary lg:mb-8">
+              <span className="material-symbols-outlined text-[16px]">school</span>
+              <span className="text-xs font-bold tracking-wide uppercase">
+                For university students in Sierra Leone
+              </span>
+            </div> */}
 
-              <h1 className="mb-5 text-4xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-5xl lg:text-7xl">
-                Cover pages your
-                <span className="block text-secondary">lecturer will</span>
-                accept
-              </h1>
+            <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight text-foreground md:text-6xl">
+              Cover pages your lecturer will accept
+            </h1>
 
-              <p className="mb-8 max-w-md text-base leading-relaxed text-secondary sm:text-lg">
-                Fill in your faculty details, preview the layout, and export PDF or Word. Try two
-                free downloads, then create an account. More campuses will follow.
-              </p>
+            <p className="mb-8 max-w-lg text-base text-secondary md:text-xl lg:mb-10">
+              Fill in your faculty details, preview the layout, and export PDF or Word. Try two
+              free downloads, then create an account. More campuses will follow.
+            </p>
 
-              <div className="flex w-full flex-col gap-3 sm:flex-row">
-                <Link
-                  href="/cover"
-                  className="rounded-full bg-primary px-7 py-3.5 text-center text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-primary-container focus-ring"
-                >
-                  Make a cover
-                </Link>
-                <Link
-                  href="/login"
-                  className="rounded-full bg-surface px-7 py-3.5 text-center text-sm font-semibold text-foreground transition-colors hover:bg-secondary-container focus-ring"
-                >
-                  Sign in
-                </Link>
-              </div>
-            </div>
-
-            <div className="relative min-h-[22rem] sm:min-h-[28rem] lg:min-h-0">
-              <div className="relative h-full min-h-[22rem] overflow-hidden bg-secondary-container sm:min-h-[28rem] lg:min-h-full">
-                <div className="absolute inset-0 flex items-center justify-center p-8 sm:p-12">
-                  <article className="flex aspect-[210/297] w-[min(78%,20rem)] flex-col items-center bg-surface-strong px-6 py-8 shadow-soft">
-                    <img
-                      src={COVER_LOGO_PATH}
-                      alt="Limkokwing University of Creative Technology"
-                      className="mb-5 h-16 w-auto object-contain sm:h-20"
-                    />
-                    <div className="h-0.5 w-full bg-foreground" />
-                    <p className="py-4 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-foreground sm:text-xs">
-                      Individual assignment
-                    </p>
-                    <div className="h-0.5 w-full bg-foreground" />
-                    <dl className="mt-6 w-full space-y-2 text-[11px] text-secondary sm:text-xs">
-                      <div className="flex justify-between gap-3">
-                        <dt>Course</dt>
-                        <dd className="font-medium text-foreground">Cover page</dd>
-                      </div>
-                      <div className="flex justify-between gap-3">
-                        <dt>Export</dt>
-                        <dd className="font-medium text-foreground">PDF · Word</dd>
-                      </div>
-                      <div className="flex justify-between gap-3">
-                        <dt>Campus</dt>
-                        <dd className="font-medium text-foreground">Sierra Leone</dd>
-                      </div>
-                    </dl>
-                  </article>
-                </div>
-              </div>
-
+            <div className="flex w-full flex-col justify-center gap-4 sm:flex-row lg:w-auto">
               <Link
                 href="/cover"
-                aria-label="Make a cover with Verve"
-                className="absolute top-1/2 left-4 z-10 flex h-28 w-28 -translate-y-1/2 items-center justify-center rounded-full bg-foreground text-primary-foreground shadow-soft focus-ring sm:left-0 sm:h-32 sm:w-32 sm:-translate-x-1/3"
+                className="w-full rounded-xl bg-primary px-8 py-3.5 text-center text-base font-semibold text-primary-foreground shadow-soft transition-all hover:brightness-110 active:scale-95 sm:w-auto"
               >
-                <svg
-                  viewBox="0 0 120 120"
-                  className="landing-spin absolute inset-1 h-[calc(100%-0.5rem)] w-[calc(100%-0.5rem)]"
-                  aria-hidden="true"
-                >
-                  <defs>
-                    <path
-                      id="landing-circle-path"
-                      d="M 60,60 m -44,0 a 44,44 0 1,1 88,0 a 44,44 0 1,1 -88,0"
-                    />
-                  </defs>
-                  <text fill="currentColor" fontSize="8.5" letterSpacing="2.4">
-                    <textPath href="#landing-circle-path">
-                      MAKE A COVER WITH VERVE · MAKE A COVER WITH VERVE ·
-                    </textPath>
-                  </text>
-                </svg>
-                <span className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-surface-strong text-foreground sm:h-14 sm:w-14">
-                  <span className="material-symbols-outlined text-[22px]">arrow_outward</span>
-                </span>
+                Make a cover
+              </Link>
+              <Link
+                href="/signup"
+                className="w-full rounded-xl border border-outline-variant/30 bg-surface-strong px-8 py-3.5 text-center text-base font-semibold text-foreground transition-all hover:bg-surface active:scale-95 sm:w-auto"
+              >
+                Create a free account
               </Link>
             </div>
           </div>
+        </section>
 
-          <div className="overflow-hidden bg-foreground py-3 text-primary-foreground">
-            <div className="landing-marquee flex w-max items-center gap-10 whitespace-nowrap px-6 text-sm font-semibold tracking-wide">
-              {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, index) => (
-                <span key={`${item}-${index}`} className="inline-flex items-center gap-10">
-                  <span className="inline-flex items-center gap-2">
-                    <span aria-hidden="true" className="text-primary">
-                      +
-                    </span>
-                    {item}
-                  </span>
-                </span>
-              ))}
-            </div>
-          </div>
-      </section>
-
-      <div className="mx-auto w-full max-w-7xl flex-grow px-4 sm:px-6 lg:px-8">
-        <section className="px-2 py-14 sm:py-16">
+        <section className="my-8 bg-surface-strong py-10">
           <p className="mb-6 text-center text-xs font-bold uppercase tracking-widest text-secondary">
             Trusted by students at
           </p>
-          <div className="mx-auto flex max-w-xl flex-col items-center gap-3 text-center">
+          <div className="mx-auto flex max-w-xl flex-col items-center gap-3 px-6 text-center">
             <img
-              src={COVER_LOGO_PATH}
+              src="/cover_logo/LUCT.jpeg"
               alt="Limkokwing University of Creative Technology Sierra Leone"
               className="h-16 w-auto object-contain sm:h-20"
             />
@@ -179,20 +114,18 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="rounded-[2rem] bg-surface-strong px-5 py-12 shadow-soft sm:rounded-[2.5rem] sm:px-8 lg:px-10 lg:py-16">
-          <div className="mb-10 flex flex-col items-start gap-3 sm:mb-12">
-            <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+        <section className="mx-auto max-w-7xl space-y-6 px-4 py-16 lg:py-24">
+          <div className="mb-12 flex flex-col items-center lg:mb-16">
+            <h2 className="text-center text-3xl font-bold text-foreground md:text-4xl">
               What Verve does today
             </h2>
-            <p className="max-w-lg text-sm leading-relaxed text-secondary sm:text-base">
-              One calm place to assemble a faculty-style cover and take it to class.
-            </p>
+            <div className="mt-4 h-1.5 w-16 rounded-full bg-primary" />
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="flex flex-col gap-4 rounded-[1.5rem] bg-surface p-8">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <span className="material-symbols-outlined text-[26px] text-primary">description</span>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">
+            <div className="animate-on-scroll flex flex-col gap-4 rounded-[24px] border border-outline-variant/30 bg-surface p-8 shadow-soft transition-transform duration-300 hover:-translate-y-2">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
+                <span className="material-symbols-outlined text-[32px] text-primary">description</span>
               </div>
               <div>
                 <h3 className="mb-2 text-xl font-bold text-foreground">Faculty-style covers</h3>
@@ -203,9 +136,9 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-4 rounded-[1.5rem] bg-surface p-8">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary-container">
-                <span className="material-symbols-outlined text-[26px] text-secondary">download</span>
+            <div className="animate-on-scroll flex flex-col gap-4 rounded-[24px] border border-outline-variant/30 bg-surface p-8 shadow-soft transition-transform duration-300 hover:-translate-y-2">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-secondary-container">
+                <span className="material-symbols-outlined text-[32px] text-secondary">download</span>
               </div>
               <div>
                 <h3 className="mb-2 text-xl font-bold text-foreground">PDF and Word export</h3>
@@ -218,27 +151,27 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="px-2 py-12 sm:py-16">
-          <div className="relative flex flex-col items-start overflow-hidden rounded-[2rem] bg-primary p-8 text-primary-foreground shadow-soft sm:rounded-[2.5rem] md:p-14">
+        <section className="mx-auto max-w-5xl px-4 py-16 lg:py-24">
+          <div className="relative flex animate-on-scroll flex-col items-center overflow-hidden rounded-[32px] bg-primary p-8 text-center text-primary-foreground shadow-soft md:p-16">
             <h2 className="relative z-10 mb-4 text-3xl font-bold tracking-tight lg:text-4xl">
               Start with two free covers
             </h2>
-            <p className="relative z-10 mb-8 max-w-lg text-base text-primary-foreground/90 sm:text-lg">
+            <p className="relative z-10 mb-10 max-w-lg text-lg text-primary-foreground/90">
               Build one now. If it looks right, export it. After two downloads, sign up to keep
               using Verve.
             </p>
             <Link
               href="/cover"
-              className="relative z-10 rounded-full bg-surface-strong px-8 py-3.5 text-sm font-bold text-foreground shadow-soft transition-colors hover:bg-surface focus-ring"
+              className="relative z-10 w-full rounded-xl bg-surface-strong px-10 py-4 text-base font-bold text-foreground shadow-soft transition-all hover:bg-surface active:scale-95 sm:inline-block sm:w-auto md:text-lg"
             >
               Open the cover editor
             </Link>
           </div>
         </section>
-      </div>
+      </main>
 
-      <footer className="mx-auto w-full max-w-7xl px-6 pb-10 pt-4 md:pb-8">
-        <div className="grid grid-cols-1 gap-12 border-t border-outline-variant/30 pt-12 md:grid-cols-12">
+      <footer className="mt-12 border-t border-outline-variant/30 bg-surface-strong px-6 pb-32 pt-16 md:pb-16">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 md:grid-cols-12">
           <div className="flex flex-col items-center gap-6 border-b border-outline-variant/30 pb-8 text-center md:col-span-5 md:items-start md:border-b-0 md:pb-0 md:text-left">
             <div className="flex items-center gap-2">
               <img src="/verve_logo.png" alt="" className="h-10 w-auto" />
@@ -254,7 +187,7 @@ export default function LandingPage() {
                 href={GITHUB_REPO_URL}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full text-primary hover:underline focus-ring"
+                className="text-primary hover:underline focus-ring rounded-control"
               >
                 Open source on GitHub
               </a>
@@ -291,10 +224,10 @@ export default function LandingPage() {
                 >
                   GitHub
                 </a>
-                {hasBuyMeACoffee() ? (
+                {process.env.NEXT_PUBLIC_BUY_ME_A_COFFEE_URL ? (
                   <a
                     className="text-sm text-secondary transition-colors hover:text-primary"
-                    href={BUY_ME_A_COFFEE_URL}
+                    href={process.env.NEXT_PUBLIC_BUY_ME_A_COFFEE_URL}
                     target="_blank"
                     rel="noreferrer"
                   >
