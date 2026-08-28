@@ -1,4 +1,7 @@
 # Verve
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/4ba1cf22-a912-4130-bb2b-44b237d77972" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/77f7c926-7935-47b5-b0cc-a2a4b066e2fc" />
+
 
 A calm academic workspace for **university students in Sierra Leone** — not a developer tool.
 
