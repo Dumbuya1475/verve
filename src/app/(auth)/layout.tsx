@@ -1,10 +1,9 @@
-import { Inter } from 'next/font/google';
+import type { Metadata } from 'next';
+import Link from 'next/link';
 
-const inter = Inter({
-  variable: '--font-inter',
-  subsets: ['latin'],
-  display: 'swap',
-});
+export const metadata: Metadata = {
+  title: 'Account',
+};
 
 export default function AuthLayout({
   children,
@@ -12,7 +11,16 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-full flex-col bg-surface items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="flex min-h-full flex-col items-center justify-center bg-surface px-4 py-12 sm:px-6 lg:px-8">
+      <Link
+        href="/"
+        className="mb-6 inline-flex items-center gap-1 self-center rounded-control text-sm font-medium text-secondary hover:text-foreground focus-ring sm:self-start sm:max-w-md sm:w-full"
+      >
+        <span className="material-symbols-outlined text-[18px]" aria-hidden>
+          arrow_back
+        </span>
+        Back to home
+      </Link>
       {children}
     </div>
   );

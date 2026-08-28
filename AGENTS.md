@@ -18,17 +18,17 @@ gated GitHub push, and a gated "compress and email to faculty" flow).
   renamed `middleware.ts` to **`proxy.ts`** (exported function is now
   `proxy`, not `middleware`) — always check `node_modules/next/dist/docs/`
   before writing anything touching routing/auth, since this changes fast.
-- Supabase: Postgres (with Row Level Security), Auth, Storage, via
-  `@supabase/ssr` + `@supabase/supabase-js`. Same combination already used in
-  the team's TreeventX project.
-  - Only `getAll`/`setAll` cookie methods — never `get`/`set`/`remove`, and
-    never import from the deprecated `@supabase/auth-helpers-nextjs`.
-  - Env vars are `NEXT_PUBLIC_SUPABASE_URL` and
-    `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (Supabase's current naming — not
-    the older `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
-  - Client helpers already exist: `src/lib/supabase/client.ts` (browser),
-    `src/lib/supabase/server.ts` (Server Components/Route Handlers/Actions).
-    Reuse these — don't create ad hoc clients elsewhere.
+- **Firebase Authentication** for sign-up / sign-in (email/password and Google). Client
+  helpers live in `src/lib/firebase/` — do not scatter `initializeApp` in components.
+  Session cookies are set via `/api/auth/session`; `src/proxy.ts` redirects signed-out
+  users away from app routes (`/cover`, `/document`, …). **No profile pictures** in the
+  account UI — display name and email only.
+- **Supabase** remains optional for a later Postgres/storage data layer (same helpers
+  as before). It is **not** used for Auth. If you add it, only `getAll`/`setAll` cookie
+  methods — never `get`/`set`/`remove`, and never import from the deprecated
+  `@supabase/auth-helpers-nextjs`.
+  - Env vars for that later path: `NEXT_PUBLIC_SUPABASE_URL` and
+    `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
 - Payments: Monime (docs.monime.io) — Checkout Sessions + Webhooks. Covers
   mobile money (Orange Money, Afrimoney) and card in one integration, so it
   handles both local and international payers.
@@ -85,10 +85,9 @@ explicitly not a developer tool.
 - No payment providers other than Monime in this phase.
 
 ## Status
-- **Issue 1 (this scaffold) — done.** App shell, design tokens, four
-  placeholder routes (`/cover`, `/document`, `/exam`, `/submit`), Supabase
-  client helpers (unused so far). No auth gating and no `proxy.ts` yet —
-  those belong to Issue 2, on purpose, to keep this issue's diff small.
-- **Next up: Issue 2 — Auth.** Add `src/proxy.ts` (session refresh +
-  redirect-if-signed-out), sign up/sign in pages, and the account menu
-  already stubbed into `TopNav`.
+- **Issue 1 (scaffold) — done.** App shell, design tokens, placeholder routes.
+- **Auth — Firebase (user override of the original Supabase Auth plan).** Sign up /
+  sign in, `src/proxy.ts` session gate, account menu without avatars, PWA, feedback,
+  Buy Me a Coffee, Vercel + open-source docs.
+- Cover-page editor and export are the current product surface. Exam, submit, and a
+  full document-builder backend are out of scope unless a later issue opens them.

@@ -1,5 +1,6 @@
 import { TopNav } from '@/components/TopNav';
 import { BottomNav } from '@/components/BottomNav';
+import { AuthGate } from '@/components/AuthGate';
 
 export default function AppLayout({
   children,
@@ -8,11 +9,11 @@ export default function AppLayout({
 }>) {
   return (
     <div className="flex min-h-full flex-col">
-      <div className="hidden md:block print:hidden">
+      <div className="print:hidden">
         <TopNav />
       </div>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 pb-28 md:py-10 sm:px-6 print:w-full print:max-w-none print:p-0 print:m-0">
-        {children}
+      <main className="mx-auto w-full max-w-6xl min-w-0 flex-1 px-4 py-4 pb-28 sm:px-6 md:py-10 print:m-0 print:w-full print:max-w-none print:p-0">
+        <AuthGate>{children}</AuthGate>
       </main>
       <BottomNav />
     </div>
