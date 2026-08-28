@@ -64,12 +64,12 @@ export default function LandingPage() {
       <main className="flex-grow">
         <section className="mx-auto flex max-w-7xl flex-col items-center gap-8 px-4 pb-8 pt-12 text-center lg:gap-16 lg:pb-16 lg:pt-24">
           <div className="z-10 flex flex-col items-center">
-            <div className="mb-6 inline-flex items-center gap-1.5 rounded-full bg-secondary-container px-4 py-1.5 text-secondary lg:mb-8">
+            {/* <div className="mb-6 inline-flex items-center gap-1.5 rounded-full bg-secondary-container px-4 py-1.5 text-secondary lg:mb-8">
               <span className="material-symbols-outlined text-[16px]">school</span>
               <span className="text-xs font-bold tracking-wide uppercase">
                 For university students in Sierra Leone
               </span>
-            </div>
+            </div> */}
 
             <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight text-foreground md:text-6xl">
               Cover pages your lecturer will accept

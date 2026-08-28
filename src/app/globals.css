@@ -82,6 +82,29 @@ body {
   outline-offset: 2px;
 }
 
+@keyframes landing-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes landing-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.landing-marquee {
+  animation: landing-marquee 32s linear infinite;
+}
+
+.landing-spin {
+  animation: landing-spin 22s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

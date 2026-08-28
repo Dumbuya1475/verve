@@ -21,5 +21,27 @@ service cloud.firestore {
         ));
       allow read, update, delete: if false;
     }
+
+    match /assignments/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasAll([
+          'title', 'introduction', 'body', 'conclusion', 'references', 'includeCover', 'updatedAt'
+        ])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 200
+        && request.resource.data.introduction is string
+        && request.resource.data.introduction.size() <= 80000
+        && request.resource.data.body is string
+        && request.resource.data.body.size() <= 80000
+        && request.resource.data.conclusion is string
+        && request.resource.data.conclusion.size() <= 80000
+        && request.resource.data.references is string
+        && request.resource.data.references.size() <= 80000
+        && request.resource.data.includeCover is bool
+        && request.resource.data.updatedAt is number;
+      allow delete: if false;
+    }
   }
 }

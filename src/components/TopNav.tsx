@@ -7,6 +7,7 @@ import { AccountMenu } from '@/components/AccountMenu';
 const NAV_ITEMS = [
   { href: '/', label: 'Home' },
   { href: '/cover', label: 'Cover Page' },
+  // { href: '/document', label: 'Document' },
   { href: '/feedback', label: 'Feedback' },
 ] as const;
 

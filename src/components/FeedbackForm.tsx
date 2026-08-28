@@ -64,11 +64,11 @@ export function FeedbackForm() {
           Tell us what is working, what is confusing, or what your faculty still needs on a cover
           page. Signed-in students do not need to re-enter a name.
         </p>
-        <p className="mt-3 text-sm leading-relaxed text-secondary">
+        {/* <p className="mt-3 text-sm leading-relaxed text-secondary">
           Messages are stored privately in the Verve Firebase project (Firestore collection{' '}
           <span className="font-medium text-foreground">feedback</span>). Only project owners can
           open them in the Firebase console. They are not shown on this site.
-        </p>
+        </p> */}
         <p className="mt-3 text-sm">
           <Link href="/cover" className="font-medium text-primary focus-ring rounded-control">
             Go to cover pages

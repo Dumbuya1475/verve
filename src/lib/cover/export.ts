@@ -128,11 +128,11 @@ async function mountCoverIframe(html: string): Promise<HTMLIFrameElement> {
   return iframe;
 }
 
-export async function exportCoverPdf(params: {
+export async function captureCoverJpeg(params: {
   type: CoverType;
   formData: CoverFormData;
   groupMembers: GroupMember[];
-}): Promise<void> {
+}): Promise<string> {
   const logoSrc = `${window.location.origin}${COVER_LOGO_PATH}`;
   const html = buildCoverDocumentHtml({ ...params, logoSrc });
   const iframe = await mountCoverIframe(html);
@@ -140,7 +140,6 @@ export async function exportCoverPdf(params: {
   try {
     const html2canvasMod = await import('html2canvas');
     const html2canvas = unwrapDefault(html2canvasMod);
-    const { jsPDF } = await import('jspdf');
 
     const target = iframe.contentDocument?.querySelector('.verve-cover') ?? iframe.contentDocument?.body;
     if (!target) {
@@ -160,13 +159,22 @@ export async function exportCoverPdf(params: {
       scrollY: 0,
     });
 
-    const image = canvas.toDataURL('image/jpeg', 0.98);
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-    pdf.addImage(image, 'JPEG', 0, 0, 210, 297);
-    pdf.save(coverFilename(params.formData, 'pdf'));
+    return canvas.toDataURL('image/jpeg', 0.98);
   } finally {
     iframe.remove();
   }
+}
+
+export async function exportCoverPdf(params: {
+  type: CoverType;
+  formData: CoverFormData;
+  groupMembers: GroupMember[];
+}): Promise<void> {
+  const image = await captureCoverJpeg(params);
+  const { jsPDF } = await import('jspdf');
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  pdf.addImage(image, 'JPEG', 0, 0, 210, 297);
+  pdf.save(coverFilename(params.formData, 'pdf'));
 }
 
 const noneBorder: IBorderOptions = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
@@ -362,11 +370,11 @@ function memberCell(text: string, center = false) {
   });
 }
 
-export async function exportCoverWord(params: {
+export async function buildCoverWordChildren(params: {
   type: CoverType;
   formData: CoverFormData;
   groupMembers: GroupMember[];
-}): Promise<void> {
+}): Promise<FileChild[]> {
   const { type, formData, groupMembers } = params;
   const logo = await loadLogo();
   const children: FileChild[] = [];
@@ -570,6 +578,17 @@ export async function exportCoverWord(params: {
       ],
     }),
   );
+
+  return children;
+}
+
+export async function exportCoverWord(params: {
+  type: CoverType;
+  formData: CoverFormData;
+  groupMembers: GroupMember[];
+}): Promise<void> {
+  const children = await buildCoverWordChildren(params);
+  const { formData } = params;
 
   const doc = new Document({
     styles: {
