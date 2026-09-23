@@ -94,14 +94,6 @@ Do not put a Firebase **service account** JSON in client env vars. This app veri
 
 ## 3. Buy Me a Coffee (optional)
 
-Create a profile at [buymeacoffee.com](https://www.buymeacoffee.com/), then set:
-
-```
-NEXT_PUBLIC_BUY_ME_A_COFFEE_URL=https://www.buymeacoffee.com/your-username
-```
-
-The link appears in the account menu, on the [Feedback](/feedback) page, and in the landing footer. If the variable is empty, those controls stay hidden.
-
 ## 4. Deploy to Vercel
 
 Next.js on Vercel needs no extra `vercel.json` for this app.
