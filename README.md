@@ -1,4 +1,7 @@
 # Verve
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/4ba1cf22-a912-4130-bb2b-44b237d77972" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/77f7c926-7935-47b5-b0cc-a2a4b066e2fc" />
+
 
 A calm academic workspace for **university students in Sierra Leone** — not a developer tool.
 
@@ -90,14 +93,6 @@ Without Firebase keys the landing page and cover editor still load. Sign-in and 
 Do not put a Firebase **service account** JSON in client env vars. This app verifies ID tokens with the web API key on the server and never ships admin credentials to the browser.
 
 ## 3. Buy Me a Coffee (optional)
-
-Create a profile at [buymeacoffee.com](https://www.buymeacoffee.com/), then set:
-
-```
-NEXT_PUBLIC_BUY_ME_A_COFFEE_URL=https://www.buymeacoffee.com/your-username
-```
-
-The link appears in the account menu, on the [Feedback](/feedback) page, and in the landing footer. If the variable is empty, those controls stay hidden.
 
 ## 4. Deploy to Vercel
 
