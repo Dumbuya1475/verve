@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { CoverPreview } from '@/components/CoverPreview';
 import { exportCoverPdf, exportCoverWord } from '@/lib/cover/export';
+import { warmExportModules } from '@/lib/cover/warmExports';
 import {
   GUEST_EXPORT_LIMIT,
   canGuestExport,
@@ -34,7 +35,7 @@ const inputClass =
 
 export default function CoverPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [isClient, setIsClient] = useState(false);
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -47,6 +48,7 @@ export default function CoverPage() {
 
   useEffect(() => {
     setIsClient(true);
+    warmExportModules();
     try {
       const savedType = localStorage.getItem('coverType');
       const savedFormData = localStorage.getItem('coverFormData');
@@ -92,7 +94,10 @@ export default function CoverPage() {
   };
 
   const runExport = async (kind: 'pdf' | 'word') => {
-    if (exporting || authLoading) return;
+    if (exporting) return;
+    // Do not block on auth loading: Firebase session restores need the
+    // network, but exports are fully local (localStorage + cached chunks).
+    // Guests still hit the local export quota; signed-in users skip it.
     setExportError(null);
 
     if (!user && !canGuestExport()) {
@@ -116,10 +121,15 @@ export default function CoverPage() {
       }
     } catch (error) {
       console.error(error);
+      const offline = typeof navigator !== 'undefined' && !navigator.onLine;
       setExportError(
-        kind === 'pdf'
-          ? 'Could not create the PDF. Check the preview and try again.'
-          : 'Could not create the Word file. Check the preview and try again.',
+        offline
+          ? kind === 'pdf'
+            ? 'Could not create the PDF offline. Open this page once while online, then try again.'
+            : 'Could not create the Word file offline. Open this page once while online, then try again.'
+          : kind === 'pdf'
+            ? 'Could not create the PDF. Check the preview and try again.'
+            : 'Could not create the Word file. Check the preview and try again.',
       );
     } finally {
       setExporting(null);

@@ -121,7 +121,8 @@ After a production (HTTPS) deploy:
 - **Android / Chrome:** use Install app / Add to Home screen from the browser menu.
 - **iPhone / iPad:** Share → Add to Home Screen.
 - The web app manifest is generated from `src/app/manifest.ts` (`Verve`, standalone display, Warm White theme).
-- A service worker (`public/sw.js`) caches the app shell in **production** only so a flaky connection can still open a recently visited page.
+- A service worker (`public/sw.js`) caches the app shell, Next.js static chunks, and cover assets so the app opens offline after the first visit. Navigations fall back to a cached page, then `/offline`.
+- Editing and downloads work offline: drafts persist in `localStorage`, export libraries (`docx`, `jspdf`, `html2canvas`, `file-saver`) are pre-downloaded on idle while online and served from cache, and export buttons never wait on Firebase session restore. An offline banner shows connection state.
 
 ## Feedback
 

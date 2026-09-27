@@ -8,6 +8,7 @@ import { DocumentPreview } from '@/components/DocumentPreview';
 import { readCoverDraft } from '@/lib/document/coverDraft';
 import { exportAssignmentPdf, exportAssignmentWord } from '@/lib/document/export';
 import { readLocalAssignment, writeLocalAssignment } from '@/lib/document/storage';
+import { warmExportModules } from '@/lib/cover/warmExports';
 import { pullRemoteAssignment, pushRemoteAssignment } from '@/lib/document/sync';
 import {
   ASSIGNMENT_SECTIONS,
@@ -45,6 +46,7 @@ export default function DocumentPage() {
 
   useEffect(() => {
     setIsClient(true);
+    warmExportModules();
     const local = readLocalAssignment();
     setDraft(local);
     setHasCover(Boolean(readCoverDraft()));
@@ -109,7 +111,8 @@ export default function DocumentPage() {
   };
 
   const runExport = async (kind: 'pdf' | 'word') => {
-    if (exporting || authLoading) return;
+    if (exporting) return;
+    // Same as cover: never block exports on Firebase session restore.
     setExportError(null);
 
     if (!user && !canGuestExport()) {
@@ -138,12 +141,19 @@ export default function DocumentPage() {
       }
     } catch (error) {
       console.error(error);
+      const offline = typeof navigator !== 'undefined' && !navigator.onLine;
       setExportError(
-        error instanceof Error
+        error instanceof Error && (error.message.includes('cover') || error.message.includes('Add cover'))
           ? error.message
-          : kind === 'pdf'
-            ? 'Could not create the PDF. Check the preview and try again.'
-            : 'Could not create the Word file. Check the preview and try again.',
+          : offline
+            ? kind === 'pdf'
+              ? 'Could not create the PDF offline. Open this page once while online, then try again.'
+              : 'Could not create the Word file offline. Open this page once while online, then try again.'
+            : error instanceof Error
+              ? error.message
+              : kind === 'pdf'
+                ? 'Could not create the PDF. Check the preview and try again.'
+                : 'Could not create the Word file. Check the preview and try again.',
       );
     } finally {
       setExporting(null);

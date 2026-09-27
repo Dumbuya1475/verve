@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/components/AuthProvider';
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
 import { InstallPrompt } from '@/components/InstallPrompt';
+import { OfflineBanner } from '@/components/OfflineBanner';
 import './globals.css';
 
 const inter = Inter({
@@ -52,6 +53,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col font-sans">
         <AuthProvider>
           <ServiceWorkerRegister />
+          <OfflineBanner />
           {children}
           <InstallPrompt />
         </AuthProvider>
