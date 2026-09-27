@@ -19,7 +19,7 @@ The public name in the UI is **Verve**. CommitCraft is the project name used in 
 - Sign up and sign in with **Firebase Auth** (email/password, plus Google)
 - Send product feedback
 - Install the app on a phone (PWA)
-- Support the project via **Buy Me a Coffee** (optional link)
+<!-- - Support the project via **Buy Me a Coffee** (optional link) -->
 
 There is **no profile photo** in the account UI. The menu shows display name and email only.
 
@@ -92,7 +92,7 @@ Without Firebase keys the landing page and cover editor still load. Sign-in and 
 
 Do not put a Firebase **service account** JSON in client env vars. This app verifies ID tokens with the web API key on the server and never ships admin credentials to the browser.
 
-## 3. Buy Me a Coffee (optional)
+<!-- ## 3. Buy Me a Coffee (optional) -->
 
 ## 4. Deploy to Vercel
 
@@ -101,7 +101,7 @@ Next.js on Vercel needs no extra `vercel.json` for this app.
 1. Push to [github.com/Dumbuya1475/verve](https://github.com/Dumbuya1475/verve) (or fork it).
 2. In [Vercel](https://vercel.com/), **Add New → Project** and import the GitHub repo.
 3. Framework preset: Next.js (auto-detected).
-4. Add the same env vars as `.env.local.example` (at least the `NEXT_PUBLIC_FIREBASE_*` keys, plus Buy Me a Coffee if you use it).
+<!-- 4. Add the same env vars as `.env.local.example` (at least the `NEXT_PUBLIC_FIREBASE_*` keys, plus Buy Me a Coffee if you use it). -->
 5. Deploy.
 6. Copy the production URL into:
    - Firebase **Authorized domains**
