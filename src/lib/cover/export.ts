@@ -302,7 +302,7 @@ function courseTable(text: string) {
               left: ghostBorder,
               right: ghostBorder,
             },
-            margins: { top: 60, bottom: 60, left: 0, right: 0 },
+            margins: { top: 0, bottom: 90, left: 0, right: 0 },
             children: [
               new Paragraph({
                 alignment: AlignmentType.CENTER,

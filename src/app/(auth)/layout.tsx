@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Icon } from '@/components/Icon';
 
 export const metadata: Metadata = {
   title: 'Account',
@@ -16,9 +17,7 @@ export default function AuthLayout({
         href="/"
         className="mb-6 inline-flex items-center gap-1 self-center rounded-control text-sm font-medium text-secondary hover:text-foreground focus-ring sm:self-start sm:max-w-md sm:w-full"
       >
-        <span className="material-symbols-outlined text-[18px]" aria-hidden>
-          arrow_back
-        </span>
+        <Icon name="arrow_back" className="text-[18px]" />
         Back to home
       </Link>
       {children}

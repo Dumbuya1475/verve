@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { CoverPreview } from '@/components/CoverPreview';
+import { Icon } from '@/components/Icon';
 import { exportCoverPdf, exportCoverWord } from '@/lib/cover/export';
 import { warmExportModules } from '@/lib/cover/warmExports';
 import {
@@ -144,7 +145,7 @@ export default function CoverPage() {
         className="bg-secondary-container text-secondary p-2 rounded-control hover:bg-outline-variant/30 transition-colors focus-ring"
         aria-label="Open full-size preview"
       >
-        <span className="material-symbols-outlined align-middle">zoom_in</span>
+        <span className="inline-flex align-middle text-[24px]"><Icon name="zoom_in" /></span>
       </button>
       <button
         type="button"
@@ -152,7 +153,7 @@ export default function CoverPage() {
         disabled={exporting !== null}
         className="bg-primary text-primary-foreground px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-soft disabled:opacity-60 focus-ring"
       >
-        <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+        <Icon name="picture_as_pdf" className="text-[18px]" />
         {exporting === 'pdf' ? 'Saving…' : 'PDF'}
       </button>
       <button
@@ -161,7 +162,7 @@ export default function CoverPage() {
         disabled={exporting !== null}
         className="bg-surface-strong text-foreground border border-outline-variant/30 px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:bg-surface active:scale-95 transition-all shadow-soft disabled:opacity-60 focus-ring"
       >
-        <span className="material-symbols-outlined text-[18px]">description</span>
+        <Icon name="description" className="text-[18px]" />
         {exporting === 'word' ? 'Saving…' : 'Word'}
       </button>
     </div>
@@ -318,7 +319,7 @@ export default function CoverPage() {
               <div className="flex justify-between items-center gap-3 mb-4">
                 <h2 className="text-lg font-semibold text-foreground">Group Members</h2>
                 <button type="button" onClick={addMember} className="text-primary text-sm font-medium flex items-center gap-1 hover:opacity-80 focus-ring rounded-control">
-                  <span className="material-symbols-outlined text-[16px]">add_circle</span> Add Member
+                  <span className="inline-flex text-[16px]"><Icon name="add_circle" /></span> Add Member
                 </button>
               </div>
               <div className="flex flex-col gap-3">
@@ -345,7 +346,7 @@ export default function CoverPage() {
                       className="shrink-0 text-secondary hover:text-error disabled:opacity-40 p-2 rounded-control focus-ring"
                       aria-label={`Remove ${member.name || `member ${idx + 1}`}`}
                     >
-                      <span className="material-symbols-outlined text-[20px]">close</span>
+                      <Icon name="close" className="text-[20px]" />
                     </button>
                   </div>
                 ))}
@@ -379,7 +380,7 @@ export default function CoverPage() {
               className="mb-3 text-white hover:text-white/80 focus-ring rounded-control"
               onClick={() => setIsFullscreen(false)}
             >
-              <span className="material-symbols-outlined text-3xl align-middle">close</span>
+              <span className="inline-flex align-middle text-3xl"><Icon name="close" /></span>
               <span className="sr-only">Close preview</span>
             </button>
             <CoverPreview type={type} formData={formData} groupMembers={groupMembers} />

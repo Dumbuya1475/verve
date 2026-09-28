@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { BottomNav } from '@/components/BottomNav';
+import { Icon } from '@/components/Icon';
 import { COVER_LOGO_PATH } from '@/lib/cover/types';
 import { BUY_ME_A_COFFEE_URL, GITHUB_REPO_URL, hasBuyMeACoffee } from '@/lib/site';
 
@@ -57,7 +58,7 @@ export default function LandingPage() {
           <div className="grid min-h-0 flex-1 items-stretch gap-8 lg:grid-cols-2 lg:gap-0">
             <div className="flex flex-col justify-center px-5 py-6 sm:px-8 lg:px-12 lg:py-8">
               <p className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-outline-variant/50 bg-surface px-3 py-1.5 text-xs font-semibold tracking-wide text-secondary">
-                <span className="material-symbols-outlined text-[14px] text-primary">add</span>
+                <Icon name="add" className="text-[14px] text-primary" />
                 For students in Sierra Leone
               </p>
 
@@ -143,7 +144,7 @@ export default function LandingPage() {
                   </text>
                 </svg>
                 <span className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-surface-strong text-foreground sm:h-14 sm:w-14">
-                  <span className="material-symbols-outlined text-[22px]">arrow_outward</span>
+                  <Icon name="arrow_outward" className="text-[22px]" />
                 </span>
               </Link>
             </div>
@@ -196,7 +197,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             <div className="flex flex-col gap-4 rounded-[1.5rem] bg-surface p-8">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <span className="material-symbols-outlined text-[26px] text-primary">description</span>
+                <Icon name="description" className="text-[26px] text-primary" />
               </div>
               <div>
                 <h3 className="mb-2 text-xl font-bold text-foreground">Faculty-style covers</h3>
@@ -209,7 +210,7 @@ export default function LandingPage() {
 
             <div className="flex flex-col gap-4 rounded-[1.5rem] bg-surface p-8">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary-container">
-                <span className="material-symbols-outlined text-[26px] text-secondary">edit_note</span>
+                <Icon name="edit_note" className="text-[26px] text-secondary" />
               </div>
               <div>
                 <h3 className="mb-2 text-xl font-bold text-foreground">Assignment writer</h3>
@@ -222,7 +223,7 @@ export default function LandingPage() {
 
             <div className="flex flex-col gap-4 rounded-[1.5rem] bg-surface p-8">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary-container">
-                <span className="material-symbols-outlined text-[26px] text-secondary">download</span>
+                <Icon name="download" className="text-[26px] text-secondary" />
               </div>
               <div>
                 <h3 className="mb-2 text-xl font-bold text-foreground">PDF and Word export</h3>

@@ -38,7 +38,7 @@ export const COVER_PAGE_CSS = `
   font-size: 13.5pt;
   font-weight: 700;
   text-transform: uppercase;
-  margin: 0 0 0.2in;
+  margin: 0 0 0.16in;
 }
 .verve-cover .vc-course {
   margin: 0 0 0.18in;
@@ -54,7 +54,7 @@ export const COVER_PAGE_CSS = `
   font-weight: 700;
   text-transform: uppercase;
   margin: 0;
-  padding: 0.12in 0;
+  padding: 0.09in 0 0.16in;
   line-height: 1.2;
   text-align: center;
 }

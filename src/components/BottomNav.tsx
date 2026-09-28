@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Icon } from '@/components/Icon';
 
 const NAV_ITEMS = [
   { href: '/', label: 'Home', icon: 'home' },
@@ -24,9 +25,7 @@ export function BottomNav() {
         if (active) {
           return (
             <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center text-primary font-bold bg-primary-fixed/20 rounded-xl px-4 py-1 transition-all active:scale-95">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
-                {item.icon}
-              </span>
+              <Icon name={item.icon} className="text-[24px]" />
               <span className="text-xs font-semibold tracking-wider mt-1">{item.label}</span>
             </Link>
           );
@@ -34,9 +33,7 @@ export function BottomNav() {
 
         return (
           <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center text-secondary px-4 py-1 hover:text-foreground transition-all active:scale-95">
-            <span className="material-symbols-outlined">
-              {item.icon}
-            </span>
+            <Icon name={item.icon} className="text-[24px]" />
             <span className="text-xs font-medium mt-1">{item.label}</span>
           </Link>
         );

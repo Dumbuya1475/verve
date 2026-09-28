@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Icon } from '@/components/Icon';
 
 const MOCK_QUESTIONS = [
   {
@@ -80,7 +81,7 @@ export default function ExamMasterPage() {
             <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-colors ${
               isDragging ? 'bg-primary/20' : 'bg-primary/10'
             }`}>
-              <span className="material-symbols-outlined text-primary text-3xl">upload_file</span>
+              <Icon name="upload_file" className="text-3xl text-primary" />
             </div>
             <h3 className="text-xl font-semibold mb-2 text-foreground">Drop study materials here</h3>
             <p className="text-base text-secondary mb-6">Supports PDF, MP3 recordings, and PPTX slides.</p>
@@ -94,14 +95,14 @@ export default function ExamMasterPage() {
         <div className="lg:col-span-4 bg-surface-strong rounded-container shadow-soft p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm font-semibold text-tertiary uppercase tracking-wider">Recent Uploads</h3>
-            <span className="material-symbols-outlined text-secondary cursor-pointer">history</span>
+            <Icon name="history" className="text-secondary" />
           </div>
           
           <div className="space-y-4 overflow-y-auto max-h-[160px] custom-scrollbar pr-2">
             {/* Upload Item: Processing */}
             <div className="flex items-center justify-between p-4 bg-surface rounded-control border border-outline-variant/30">
               <div className="flex items-center gap-4">
-                <span className="material-symbols-outlined text-primary">picture_as_pdf</span>
+                <Icon name="picture_as_pdf" className="text-primary" />
                 <div>
                   <p className="text-sm font-medium text-foreground truncate max-w-[150px]">Lecture_12_Cloud_Arch.pdf</p>
                   <p className="text-[10px] text-secondary font-bold uppercase mt-0.5">Processing...</p>
@@ -113,13 +114,13 @@ export default function ExamMasterPage() {
             {/* Upload Item: Ready */}
             <div className="flex items-center justify-between p-4 bg-surface rounded-control border border-outline-variant/30">
               <div className="flex items-center gap-4">
-                <span className="material-symbols-outlined text-secondary">description</span>
+                <Icon name="description" className="text-secondary" />
                 <div>
                   <p className="text-sm font-medium text-foreground truncate max-w-[150px]">System_Design_Final.pptx</p>
                   <p className="text-[10px] text-secondary font-bold uppercase mt-0.5">Ready</p>
                 </div>
               </div>
-              <span className="material-symbols-outlined text-secondary text-sm">check_circle</span>
+              <Icon name="check_circle" className="text-sm text-secondary" />
             </div>
           </div>
         </div>
@@ -132,14 +133,14 @@ export default function ExamMasterPage() {
         <section className="lg:col-span-7 flex flex-col gap-6">
           <div className="bg-surface-strong rounded-container shadow-soft p-6 border-l-4 border-primary">
             <div className="flex items-center gap-3 mb-4">
-              <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
+              <Icon name="psychology" className="text-primary" />
               <h2 className="text-xl font-semibold text-foreground">Predicted Exam Study Guide</h2>
             </div>
             
             {/* AI Insights Box */}
             <div className="bg-primary/5 p-6 rounded-control mb-6 border border-primary/20">
               <div className="flex items-start gap-3">
-                <span className="material-symbols-outlined text-primary mt-0.5">auto_awesome</span>
+                <Icon name="auto_awesome" className="mt-0.5 text-primary" />
                 <div>
                   <h4 className="text-sm font-bold text-primary mb-1">AI Insight: Core Focus Area</h4>
                   <p className="text-sm text-foreground/80 leading-relaxed">
@@ -157,7 +158,7 @@ export default function ExamMasterPage() {
                     <span className="text-xs font-bold px-3 py-1 bg-secondary/10 text-secondary rounded-full">
                       Question {q.id}
                     </span>
-                    <span className="material-symbols-outlined text-secondary hover:text-primary cursor-pointer transition-colors">bookmark</span>
+                    <Icon name="bookmark" className="text-secondary" />
                   </div>
                   
                   <p className="text-lg font-medium text-foreground mb-4">{q.question}</p>
@@ -178,7 +179,7 @@ export default function ExamMasterPage() {
             </div>
 
             <button className="w-full mt-6 py-4 border-2 border-primary text-primary font-bold rounded-control hover:bg-primary/5 transition-colors flex items-center justify-center gap-2 focus-ring">
-              <span className="material-symbols-outlined">add_circle</span>
+              <Icon name="add_circle" />
               Generate 10 More Questions
             </button>
           </div>
@@ -190,7 +191,7 @@ export default function ExamMasterPage() {
             
             <div className="p-6 border-b border-outline-variant/20">
               <div className="flex items-center gap-3 mb-0">
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>present_to_all</span>
+                <Icon name="present_to_all" className="text-secondary" />
                 <h2 className="text-xl font-semibold text-foreground">Presentation Speaker Script</h2>
               </div>
             </div>
@@ -199,7 +200,7 @@ export default function ExamMasterPage() {
             <div className="relative h-48 w-full group bg-surface">
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors z-10 flex items-center justify-center">
                 <button className="bg-white/90 p-3 rounded-full text-primary shadow-lg scale-90 group-hover:scale-100 transition-transform">
-                  <span className="material-symbols-outlined text-3xl">play_circle</span>
+                  <Icon name="play_circle" className="text-3xl" />
                 </button>
               </div>
               <img 
@@ -229,7 +230,7 @@ export default function ExamMasterPage() {
                     </button>
                   ))}
                 </div>
-                <span className="material-symbols-outlined text-secondary cursor-pointer hover:text-primary transition-colors">settings</span>
+                <Icon name="settings" className="text-secondary" />
               </div>
 
               {/* Key Points */}
@@ -250,7 +251,7 @@ export default function ExamMasterPage() {
                 </div>
                 <div className="absolute -bottom-4 right-4">
                   <button className="bg-surface-strong text-foreground text-sm shadow-md rounded-full px-4 py-2 border border-outline-variant/30 flex items-center gap-1 hover:bg-surface transition-colors">
-                    <span className="material-symbols-outlined text-sm">unfold_more</span>
+                    <Icon name="unfold_more" className="text-sm" />
                     Expand Script
                   </button>
                 </div>
@@ -261,7 +262,7 @@ export default function ExamMasterPage() {
             <div className="p-6 bg-surface border-t border-outline-variant/20 flex justify-between items-center mt-auto">
               <p className="text-xs font-medium text-secondary">Last generated 2 mins ago</p>
               <button className="bg-secondary text-white px-4 py-2 rounded-control font-medium hover:bg-foreground transition-colors flex items-center gap-2 focus-ring">
-                <span className="material-symbols-outlined text-sm">file_download</span>
+                <Icon name="file_download" className="text-sm" />
                 Export Script
               </button>
             </div>

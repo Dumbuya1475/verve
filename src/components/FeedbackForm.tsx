@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
+import { Icon } from '@/components/Icon';
 import { SupportLinks } from '@/components/SupportLinks';
 import { hasBuyMeACoffee } from '@/lib/site';
 
@@ -53,9 +54,7 @@ export function FeedbackForm() {
           href="/"
           className="mb-4 inline-flex items-center gap-1 rounded-control text-sm font-medium text-secondary hover:text-foreground focus-ring"
         >
-          <span className="material-symbols-outlined text-[18px]" aria-hidden>
-            arrow_back
-          </span>
+          <Icon name="arrow_back" className="text-[18px]" />
           Back to home
         </Link>
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">Support</p>

@@ -1,9 +1,9 @@
+import { Icon } from '@/components/Icon';
+
 export default function OfflinePage() {
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col items-center px-4 py-16 text-center">
-      <span className="material-symbols-outlined text-5xl text-secondary" aria-hidden="true">
-        cloud_off
-      </span>
+      <Icon name="cloud_off" className="text-5xl text-secondary" />
       <h1 className="mt-4 text-2xl font-bold text-foreground">You&apos;re offline</h1>
       <p className="mt-3 text-base leading-relaxed text-secondary">
         No connection right now. Your saved cover pages and drafts live on this device, so you

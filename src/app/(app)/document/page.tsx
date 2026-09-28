@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { DocumentPreview } from '@/components/DocumentPreview';
+import { Icon } from '@/components/Icon';
 import { readCoverDraft } from '@/lib/document/coverDraft';
 import { exportAssignmentPdf, exportAssignmentWord } from '@/lib/document/export';
 import { readLocalAssignment, writeLocalAssignment } from '@/lib/document/storage';
@@ -177,7 +178,7 @@ export default function DocumentPage() {
         disabled={exporting !== null}
         className="bg-primary text-primary-foreground px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-soft disabled:opacity-60 focus-ring"
       >
-        <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+        <Icon name="picture_as_pdf" className="text-[18px]" />
         {exporting === 'pdf' ? 'Saving…' : 'PDF'}
       </button>
       <button
@@ -186,7 +187,7 @@ export default function DocumentPage() {
         disabled={exporting !== null}
         className="bg-surface-strong text-foreground border border-outline-variant/30 px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:bg-surface active:scale-95 transition-all shadow-soft disabled:opacity-60 focus-ring"
       >
-        <span className="material-symbols-outlined text-[18px]">description</span>
+        <Icon name="description" className="text-[18px]" />
         {exporting === 'word' ? 'Saving…' : 'Word'}
       </button>
     </div>
