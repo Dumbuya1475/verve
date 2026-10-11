@@ -69,8 +69,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="mb-8 max-w-md text-base leading-relaxed text-secondary sm:text-lg">
-              Fill in a cover, write the assignment, or both. Export PDF or Word. Try two free
-              downloads, then create an account. More campuses will follow.
+                Fill in a cover, write the assignment, or both. Export PDF or Word after signing in.
               </p>
 
               <div className="flex w-full flex-col gap-3 sm:flex-row">
@@ -228,8 +227,8 @@ export default function LandingPage() {
               <div>
                 <h3 className="mb-2 text-xl font-bold text-foreground">PDF and Word export</h3>
                 <p className="text-sm leading-relaxed text-secondary">
-                  Download the same page you preview. Guests get two exports. Create an account on
-                  the third so you can keep submitting work all semester.
+                  Download the same page you preview. Export records are tied to each signed-in
+                  account so usage can be tracked and audited.
                 </p>
               </div>
             </div>
@@ -239,11 +238,11 @@ export default function LandingPage() {
         <section className="px-2 py-12 sm:py-16">
           <div className="relative flex flex-col items-start overflow-hidden rounded-[2rem] bg-primary p-8 text-primary-foreground shadow-soft sm:rounded-[2.5rem] md:p-14">
             <h2 className="relative z-10 mb-4 text-3xl font-bold tracking-tight lg:text-4xl">
-              Start with two free covers
+              Start from a signed-in workspace
             </h2>
             <p className="relative z-10 mb-8 max-w-lg text-base text-primary-foreground/90 sm:text-lg">
-              Build one now. If it looks right, export it. After two downloads, sign up to keep
-              using Verve.
+              Create your account first, then build and export your cover or assignment with usage
+              tracked to your profile.
             </p>
             <Link
               href="/cover"

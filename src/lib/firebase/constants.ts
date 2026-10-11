@@ -15,6 +15,7 @@ export const PUBLIC_PATHS = [
 export const PROTECTED_PREFIXES = [
   '/exam',
   '/submit',
+  '/usage',
 ] as const;
 
 export function isPublicPath(pathname: string): boolean {

@@ -22,6 +22,18 @@ service cloud.firestore {
       allow read, update, delete: if false;
     }
 
+    match /exportEvents/{id} {
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.uid
+        && request.resource.data.keys().hasAll(['uid', 'kind', 'format', 'createdAt'])
+        && request.resource.data.uid is string
+        && request.resource.data.kind in ['cover', 'document']
+        && request.resource.data.format is string
+        && request.resource.data.createdAt is string;
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow update, delete: if false;
+    }
+
     match /assignments/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow create, update: if request.auth != null

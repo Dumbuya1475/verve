@@ -8,12 +8,6 @@ import { CoverPreview } from "@/components/CoverPreview";
 import { Icon } from "@/components/Icon";
 import { exportCoverPdf, exportCoverWord } from "@/lib/cover/export";
 import { warmExportModules } from "@/lib/cover/warmExports";
-import {
-  GUEST_EXPORT_LIMIT,
-  canGuestExport,
-  recordGuestExport,
-  remainingGuestExports,
-} from "@/lib/cover/exportQuota";
 import type { CoverFormData, CoverType, GroupMember } from "@/lib/cover/types";
 
 const DEFAULT_FORM: CoverFormData = {
@@ -47,7 +41,6 @@ export default function CoverPage() {
   ]);
   const [exporting, setExporting] = useState<"pdf" | "word" | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
-  const [guestRemaining, setGuestRemaining] = useState(GUEST_EXPORT_LIMIT);
 
   useEffect(() => {
     setIsClient(true);
@@ -67,7 +60,6 @@ export default function CoverPage() {
     } catch {
       // Keep defaults if saved data is unreadable.
     }
-    setGuestRemaining(remainingGuestExports());
   }, []);
 
   useEffect(() => {
@@ -111,10 +103,8 @@ export default function CoverPage() {
     // Guests still hit the local export quota; signed-in users skip it.
     setExportError(null);
 
-    if (!user && !canGuestExport()) {
-      setExportError(
-        `You have used your ${GUEST_EXPORT_LIMIT} free exports. Create an account to keep downloading.`,
-      );
+    if (!user) {
+      setExportError("Create an account to export documents. Signed-in users are tracked and protected from local tampering.");
       router.push("/signup?next=/cover");
       return;
     }
@@ -126,10 +116,11 @@ export default function CoverPage() {
       } else {
         await exportCoverWord({ type, formData, groupMembers });
       }
-      if (!user) {
-        recordGuestExport();
-        setGuestRemaining(remainingGuestExports());
-      }
+      await fetch("/api/exports/record", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "cover", format: kind }),
+      });
     } catch (error) {
       console.error(error);
       const offline = typeof navigator !== "undefined" && !navigator.onLine;
@@ -193,17 +184,13 @@ export default function CoverPage() {
           </p>
           {!user && isClient ? (
             <p className="mt-2 text-sm text-secondary">
-              {guestRemaining > 0
-                ? `${guestRemaining} free export${guestRemaining === 1 ? "" : "s"} left without an account.`
-                : "Free exports used. Create an account to download again."}{" "}
-              {guestRemaining === 0 ? (
-                <Link
-                  href="/signup?next=/cover"
-                  className="font-medium text-primary focus-ring rounded-control"
-                >
-                  Create an account
-                </Link>
-              ) : null}
+              Sign in before exporting. All exports are tracked per account to prevent local tampering. {" "}
+              <Link
+                href="/signup?next=/cover"
+                className="font-medium text-primary focus-ring rounded-control"
+              >
+                Create an account
+              </Link>
             </p>
           ) : null}
         </div>

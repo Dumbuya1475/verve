@@ -17,12 +17,6 @@ import {
   type AssignmentDraft,
   type AssignmentSectionKey,
 } from '@/lib/document/types';
-import {
-  GUEST_EXPORT_LIMIT,
-  canGuestExport,
-  recordGuestExport,
-  remainingGuestExports,
-} from '@/lib/cover/exportQuota';
 
 const inputClass =
   'w-full min-w-0 bg-surface border border-outline-variant/30 rounded-control px-4 py-2.5 focus-ring focus:bg-surface-strong transition-all text-base';
@@ -39,7 +33,6 @@ export default function DocumentPage() {
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [exporting, setExporting] = useState<'pdf' | 'word' | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
-  const [guestRemaining, setGuestRemaining] = useState(GUEST_EXPORT_LIMIT);
   const [saveState, setSaveState] = useState<SaveState>('local');
   const [hasCover, setHasCover] = useState(false);
   const skipNextPush = useRef(true);
@@ -51,7 +44,6 @@ export default function DocumentPage() {
     const local = readLocalAssignment();
     setDraft(local);
     setHasCover(Boolean(readCoverDraft()));
-    setGuestRemaining(remainingGuestExports());
   }, []);
 
   useEffect(() => {
@@ -116,10 +108,8 @@ export default function DocumentPage() {
     // Same as cover: never block exports on Firebase session restore.
     setExportError(null);
 
-    if (!user && !canGuestExport()) {
-      setExportError(
-        `You have used your ${GUEST_EXPORT_LIMIT} free exports. Create an account to keep downloading.`,
-      );
+    if (!user) {
+      setExportError('Create an account to export documents. Signed-in users are tracked and protected from local tampering.');
       router.push('/signup?next=/document');
       return;
     }
@@ -136,10 +126,11 @@ export default function DocumentPage() {
       } else {
         await exportAssignmentWord(draft);
       }
-      if (!user) {
-        recordGuestExport();
-        setGuestRemaining(remainingGuestExports());
-      }
+      await fetch('/api/exports/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'document', format: kind }),
+      });
     } catch (error) {
       console.error(error);
       const offline = typeof navigator !== 'undefined' && !navigator.onLine;
@@ -216,9 +207,7 @@ export default function DocumentPage() {
           ) : null}
           {!user && isClient ? (
             <p className="mt-1 text-sm text-secondary">
-              {guestRemaining > 0
-                ? `${guestRemaining} free export${guestRemaining === 1 ? '' : 's'} left without an account.`
-                : 'Free exports used. Create an account to download again.'}
+              Sign in to export. Export usage is tracked to each account so local browser tricks cannot bypass the limit.
             </p>
           ) : null}
         </div>

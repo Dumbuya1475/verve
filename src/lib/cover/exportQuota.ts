@@ -1,4 +1,4 @@
-export const GUEST_EXPORT_LIMIT = 2;
+export const GUEST_EXPORT_LIMIT = 0;
 const STORAGE_KEY = 'verve-guest-export-count';
 
 function readCount(): number {
@@ -18,9 +18,12 @@ export function remainingGuestExports(): number {
 }
 
 export function canGuestExport(): boolean {
-  return readCount() < GUEST_EXPORT_LIMIT;
+  return false;
 }
 
 export function recordGuestExport(): void {
-  window.localStorage.setItem(STORAGE_KEY, String(readCount() + 1));
+  // Guests are no longer allowed to export without a verified Firebase session.
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem(STORAGE_KEY, String(readCount()));
+  }
 }
