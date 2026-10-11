@@ -154,7 +154,9 @@ export default function CoverPage() {
       }
     } catch (error) {
       console.error("Export tracking failed", error);
-      setExportError("Your file was created, but its usage could not be recorded.");
+      setExportError(
+        "Your file was created, but the app server could not be reached to record usage. Check your connection and try again when the app is available.",
+      );
     }
     setExporting(null);
     setShowSurvey(shouldShowSurvey);

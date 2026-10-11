@@ -69,6 +69,14 @@ export function ExportShareDialog({ onClose, showSurvey }: ExportShareDialogProp
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rating, comment }),
       });
+      const contentType = response.headers.get('content-type') ?? '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(
+          response.status === 404
+            ? 'The survey service is not available on this deployment. Deploy the latest app version and try again.'
+            : `The server returned an unexpected response (HTTP ${response.status}). Try again later.`,
+        );
+      }
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) {
         setSurveyStatus('error');
@@ -79,7 +87,11 @@ export function ExportShareDialog({ onClose, showSurvey }: ExportShareDialogProp
     } catch (error) {
       console.error('Could not submit export survey', error);
       setSurveyStatus('error');
-      setSurveyError('Could not send your response. Check your connection and try again.');
+      setSurveyError(
+        error instanceof Error
+          ? error.message
+          : 'Could not send your response. Check your connection and try again.',
+      );
     }
   }
 

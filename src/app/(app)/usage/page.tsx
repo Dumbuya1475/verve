@@ -23,17 +23,31 @@ export default function UsagePage() {
 
       try {
         const response = await fetch('/api/exports/record');
-        if (!response.ok) {
-          const payload = (await response.json()) as { error?: string };
-          throw new Error(payload.error ?? 'Could not load usage data.');
+        const contentType = response.headers.get('content-type') ?? '';
+        if (!contentType.includes('application/json')) {
+          throw new Error(
+            response.status === 404
+              ? 'The analytics API is not available on this deployment. Deploy the latest app version and try again.'
+              : `The server returned an unexpected response (HTTP ${response.status}). Check the app deployment and server logs.`,
+          );
         }
 
-        const payload = (await response.json()) as {
+        let payload: {
           totalExports?: number;
           uniqueUsers?: number;
           exportsByKind?: Record<string, number>;
           generatedAt?: string | null;
+          error?: string;
         };
+        try {
+          payload = (await response.json()) as typeof payload;
+        } catch {
+          throw new Error('The analytics API returned invalid data. Check the app server logs.');
+        }
+
+        if (!response.ok) {
+          throw new Error(payload.error ?? 'Could not load usage data.');
+        }
 
         if (!cancelled) {
           setStats({
