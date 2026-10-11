@@ -79,12 +79,6 @@ export default function LandingPage() {
                 >
                   Make a cover
                 </Link>
-                <Link
-                  href="/document"
-                  className="rounded-full bg-surface px-7 py-3.5 text-center text-sm font-semibold text-foreground transition-colors hover:bg-secondary-container focus-ring"
-                >
-                  Write an assignment
-                </Link>
               </div>
             </div>
 

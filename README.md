@@ -16,6 +16,7 @@ The public name in the UI is **Verve**. CommitCraft is the project name used in 
 
 - Build Individual and Group assignment cover pages
 - Preview and export (PDF / Word)
+- Share Verve with classmates after exporting, and answer a short survey after your fourth export
 - Sign up and sign in with **Firebase Auth** (email/password, plus Google)
 - Send product feedback
 - Install the app on a phone (PWA)
@@ -90,7 +91,22 @@ Without Firebase keys the landing page and cover editor still load. Sign-in and 
 
    Feedback is written to a `feedback` collection. The rules allow **create only** (no public reads).
 
-Do not put a Firebase **service account** JSON in client env vars. This app verifies ID tokens with the web API key on the server and never ships admin credentials to the browser.
+Do not put a Firebase **service account** JSON in client env vars. The service-account key used for export analytics is kept server-side and is never shipped to the browser.
+
+### Export usage dashboard (optional)
+
+The administrator dashboard is available at `/usage`. To enable it:
+
+1. Create and sign in to the account that should be the administrator.
+2. In Firebase Console → **Authentication → Users**, copy that account's UID.
+3. In local `.env.local` and your hosting provider's server-side environment variables, set:
+   - `ADMIN_UID` to the copied UID
+   - `FIREBASE_SERVICE_ACCOUNT_KEY` to the complete JSON key from Firebase Console → **Project settings → Service accounts → Generate new private key**
+4. Redeploy after changing production environment variables, then sign in with that account and open `/usage`.
+
+The service-account key is a server secret: never use a `NEXT_PUBLIC_` prefix, commit the key, or share it. Only the configured UID can read analytics. Export events are written by the server using the Admin SDK, so `exportEvents` is denied to direct client reads and writes by [`firestore.rules`](./firestore.rules). Deploy the updated rules with `firebase deploy --only firestore:rules`.
+
+These counts represent recorded export actions, not independently verified downloads: PDF and Word files are still generated in the browser.
 
 <!-- ## 3. Buy Me a Coffee (optional) -->
 

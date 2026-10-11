@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { CoverPreview } from "@/components/CoverPreview";
+import { ExportShareDialog } from "@/components/ExportShareDialog";
 import { Icon } from "@/components/Icon";
 import { exportCoverPdf, exportCoverWord } from "@/lib/cover/export";
 import { warmExportModules } from "@/lib/cover/warmExports";
@@ -41,6 +42,8 @@ export default function CoverPage() {
   ]);
   const [exporting, setExporting] = useState<"pdf" | "word" | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [showSurvey, setShowSurvey] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -98,13 +101,11 @@ export default function CoverPage() {
 
   const runExport = async (kind: "pdf" | "word") => {
     if (exporting) return;
-    // Do not block on auth loading: Firebase session restores need the
-    // network, but exports are fully local (localStorage + cached chunks).
-    // Guests still hit the local export quota; signed-in users skip it.
+    // Exports require a signed-in account and are generated locally.
     setExportError(null);
 
     if (!user) {
-      setExportError("Create an account to export documents. Signed-in users are tracked and protected from local tampering.");
+      setExportError("Sign in or create an account to download your cover.");
       router.push("/signup?next=/cover");
       return;
     }
@@ -116,11 +117,6 @@ export default function CoverPage() {
       } else {
         await exportCoverWord({ type, formData, groupMembers });
       }
-      await fetch("/api/exports/record", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind: "cover", format: kind }),
-      });
     } catch (error) {
       console.error(error);
       const offline = typeof navigator !== "undefined" && !navigator.onLine;
@@ -133,13 +129,51 @@ export default function CoverPage() {
             ? "Could not create the PDF. Check the preview and try again."
             : "Could not create the Word file. Check the preview and try again.",
       );
-    } finally {
       setExporting(null);
+      return;
     }
+
+    let shouldShowSurvey = false;
+    try {
+      const response = await fetch("/api/exports/record", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "cover", format: kind }),
+      });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        console.error("Export tracking failed", response.status);
+        setExportError(
+          payload?.error ?? "Your file was created, but its usage could not be recorded.",
+        );
+      } else {
+        const result = (await response.json()) as { showSurvey?: boolean };
+        shouldShowSurvey = result.showSurvey === true;
+      }
+    } catch (error) {
+      console.error("Export tracking failed", error);
+      setExportError("Your file was created, but its usage could not be recorded.");
+    }
+    setExporting(null);
+    setShowSurvey(shouldShowSurvey);
+    setShareDialogOpen(true);
   };
 
   const exportButtons = (
     <div className="flex flex-wrap items-center justify-end gap-2">
+      <button
+        type="button"
+        onClick={() => {
+          setShowSurvey(false);
+          setShareDialogOpen(true);
+        }}
+        className="bg-surface-strong text-foreground border border-outline-variant/30 px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:bg-surface transition-colors shadow-soft focus-ring"
+      >
+        <Icon name="share" className="text-[18px]" />
+        Share
+      </button>
       <button
         type="button"
         onClick={() => setIsFullscreen(true)}
@@ -184,7 +218,8 @@ export default function CoverPage() {
           </p>
           {!user && isClient ? (
             <p className="mt-2 text-sm text-secondary">
-              Sign in before exporting. All exports are tracked per account to prevent local tampering. {" "}
+              Sign in to download your cover.
+              {" "}
               <Link
                 href="/signup?next=/cover"
                 className="font-medium text-primary focus-ring rounded-control"
@@ -569,6 +604,12 @@ export default function CoverPage() {
           </div>
         </div>
       )}
+      {shareDialogOpen ? (
+        <ExportShareDialog
+          onClose={() => setShareDialogOpen(false)}
+          showSurvey={showSurvey}
+        />
+      ) : null}
     </div>
   );
 }

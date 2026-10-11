@@ -27,6 +27,8 @@ export type IconName =
   | 'archive'
   | 'gif_box'
   | 'send'
+  | 'share'
+  | 'link'
   | 'arrow_outward'
   | 'arrow_back'
   | 'edit_note'
@@ -176,6 +178,21 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <path d="M21 3.5 10.5 14" />
       <path d="M21 3.5 14.2 20.5l-3.7-6.5-6.5-3.7z" />
+    </>
+  ),
+  share: (
+    <>
+      <circle cx="18" cy="5" r="2.5" />
+      <circle cx="6" cy="12" r="2.5" />
+      <circle cx="18" cy="19" r="2.5" />
+      <path d="m8.2 10.7 7.6-4.4M8.2 13.3l7.6 4.4" />
+    </>
+  ),
+  link: (
+    <>
+      <path d="M10 13.5 14 9.5" />
+      <path d="M8.2 16.2H7a4 4 0 0 1 0-8h4" />
+      <path d="M16 7.8h1a4 4 0 1 1 0 8h-4" />
     </>
   ),
   arrow_outward: <path d="M7 17 17 7M8.5 7H17v8.5" />,

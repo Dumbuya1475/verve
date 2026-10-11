@@ -1,27 +1,27 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { SESSION_COOKIE, verifyIdToken } from '@/lib/firebase/session';
-import { getFirebaseWebConfig } from '@/lib/firebase/config';
+import { SESSION_COOKIE } from '@/lib/firebase/session';
+import {
+  getConfiguredAdminUid,
+  getFirebaseAdminFirestore,
+  verifyFirebaseSession,
+} from '@/lib/firebase/admin';
+
+export const runtime = 'nodejs';
 
 const exportBodySchema = z.object({
   kind: z.enum(['cover', 'document']),
   format: z.enum(['pdf', 'docx', 'word']),
 });
 
-function extractStringValue(fields: Record<string, any> | undefined, key: string): string {
-  return typeof fields?.[key]?.stringValue === 'string' ? fields[key].stringValue : '';
+async function getSessionUser() {
+  const sessionToken = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (!sessionToken) return null;
+  return verifyFirebaseSession(sessionToken);
 }
 
 export async function POST(request: Request) {
-  const config = getFirebaseWebConfig();
-  if (!config) {
-    return NextResponse.json(
-      { error: 'Add Firebase keys before enabling export tracking.' },
-      { status: 503 },
-    );
-  }
-
   let json: unknown;
   try {
     json = await request.json();
@@ -37,104 +37,137 @@ export async function POST(request: Request) {
     );
   }
 
-  const store = await cookies();
-  const sessionToken = store.get(SESSION_COOKIE)?.value;
-  const sessionUser = sessionToken ? await verifyIdToken(sessionToken) : null;
-
-  if (!sessionUser) {
-    return NextResponse.json({ error: 'Sign in to export and record usage.' }, { status: 401 });
-  }
-
-  const firestoreUrl = `https://firestore.googleapis.com/v1/projects/${config.projectId}/databases/(default)/documents/exportEvents?key=${encodeURIComponent(config.apiKey)}`;
-  const fields = {
-    uid: { stringValue: sessionUser.uid },
-    kind: { stringValue: parsed.data.kind },
-    format: { stringValue: parsed.data.format },
-    createdAt: { stringValue: new Date().toISOString() },
-  };
-
+  let sessionUser;
   try {
-      const response = await fetch(firestoreUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ fields }),
-      });
-
-    if (!response.ok) {
-      const details = await response.text();
-      console.error('exportEvents write failed', response.status, details);
-      return NextResponse.json(
-        { error: 'Could not record the export. Sign in again and try once more.' },
-        { status: 502 },
-      );
-    }
-
-    return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: 'Could not record this export right now.' }, { status: 502 });
-  }
-}
-
-export async function GET() {
-  const config = getFirebaseWebConfig();
-  if (!config) {
+    sessionUser = await getSessionUser();
+  } catch (error) {
+    console.error('Firebase session verification failed', error);
     return NextResponse.json(
-      { error: 'Add Firebase keys before viewing export analytics.' },
+      { error: 'Could not verify your session right now.' },
       { status: 503 },
     );
   }
 
-  const store = await cookies();
-  const sessionToken = store.get(SESSION_COOKIE)?.value;
-  const sessionUser = sessionToken ? await verifyIdToken(sessionToken) : null;
+  if (!sessionUser) {
+    return NextResponse.json({ error: 'Sign in to record export usage.' }, { status: 401 });
+  }
+
+  try {
+    const firestore = getFirebaseAdminFirestore();
+    const eventRef = firestore.collection('exportEvents').doc();
+    const userStatsRef = firestore.collection('userExportStats').doc(sessionUser.uid);
+    const result = await firestore.runTransaction(async (transaction) => {
+      const statsSnapshot = await transaction.get(userStatsRef);
+      const stats = statsSnapshot.data();
+      const previousCount =
+        typeof stats?.exportCount === 'number' && Number.isSafeInteger(stats.exportCount)
+          ? stats.exportCount
+          : statsSnapshot.exists
+            ? 0
+            : (
+                await transaction.get(
+                  firestore.collection('exportEvents').where('uid', '==', sessionUser.uid),
+                )
+              ).size;
+      const exportCount = previousCount + 1;
+      const showSurvey = exportCount >= 4 && !stats?.surveyPromptedAt;
+      const createdAt = new Date().toISOString();
+
+      transaction.create(eventRef, {
+        uid: sessionUser.uid,
+        kind: parsed.data.kind,
+        format: parsed.data.format,
+        createdAt,
+      });
+      transaction.set(
+        userStatsRef,
+        {
+          exportCount,
+          lastExportAt: createdAt,
+          ...(showSurvey ? { surveyPromptedAt: createdAt } : {}),
+        },
+        { merge: true },
+      );
+
+      return { exportCount, showSurvey };
+    });
+
+    return NextResponse.json({ ok: true, ...result });
+  } catch (error) {
+    console.error('Could not write export event', error);
+    return NextResponse.json(
+      { error: 'Could not record this export right now.' },
+      { status: 503 },
+    );
+  }
+}
+
+export async function GET() {
+  let sessionUser;
+  try {
+    sessionUser = await getSessionUser();
+  } catch (error) {
+    console.error('Firebase session verification failed', error);
+    return NextResponse.json(
+      { error: 'Could not verify your session right now.' },
+      { status: 503 },
+    );
+  }
 
   if (!sessionUser) {
     return NextResponse.json({ error: 'Sign in to view export usage.' }, { status: 401 });
   }
 
-  const statsUrl = `https://firestore.googleapis.com/v1/projects/${config.projectId}/databases/(default)/documents/exportEvents?key=${encodeURIComponent(config.apiKey)}`;
+  let adminUid: string;
+  try {
+    adminUid = getConfiguredAdminUid();
+  } catch (error) {
+    console.error('Admin analytics access is not configured', error);
+    return NextResponse.json(
+      { error: 'Admin analytics access is not configured.' },
+      { status: 503 },
+    );
+  }
+
+  if (sessionUser.uid !== adminUid) {
+    return NextResponse.json(
+      { error: 'You do not have access to export analytics.' },
+      { status: 403 },
+    );
+  }
 
   try {
-    const response = await fetch(statsUrl, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const snapshot = await getFirebaseAdminFirestore()
+      .collection('exportEvents')
+      .select('uid', 'kind')
+      .get();
+    const uniqueUsers = new Set<string>();
+    const exportsByKind: Record<string, number> = {};
 
-    if (!response.ok) {
-      const details = await response.text();
-      console.error('exportEvents read failed', response.status, details);
-      return NextResponse.json({ error: 'Could not read export analytics.' }, { status: 502 });
+    for (const document of snapshot.docs) {
+      const uid: unknown = document.get('uid');
+      const kind: unknown = document.get('kind');
+      if (typeof uid === 'string' && uid) uniqueUsers.add(uid);
+      if (typeof kind === 'string' && kind) {
+        exportsByKind[kind] = (exportsByKind[kind] ?? 0) + 1;
+      }
     }
 
-    const payload = (await response.json()) as {
-      documents?: Array<{
-        fields?: Record<string, { stringValue?: string }>;
-      }>;
-    };
-
-    const documents = payload.documents ?? [];
-    const totalExports = documents.length;
-    const uniqueUsers = new Set(
-      documents
-        .map((document) => extractStringValue(document.fields, 'uid'))
-        .filter(Boolean),
-    ).size;
-    const exportsByKind = documents.reduce<Record<string, number>>((accumulator, document) => {
-      const kind = extractStringValue(document.fields, 'kind');
-      if (kind) accumulator[kind] = (accumulator[kind] ?? 0) + 1;
-      return accumulator;
-    }, {});
-
-    return NextResponse.json({
-      ok: true,
-      totalExports,
-      uniqueUsers,
-      exportsByKind,
-      generatedAt: new Date().toISOString(),
-    });
-  } catch {
-    return NextResponse.json({ error: 'Could not read export analytics right now.' }, { status: 502 });
+    return NextResponse.json(
+      {
+        ok: true,
+        totalExports: snapshot.size,
+        uniqueUsers: uniqueUsers.size,
+        exportsByKind,
+        generatedAt: new Date().toISOString(),
+      },
+      { headers: { 'Cache-Control': 'no-store' } },
+    );
+  } catch (error) {
+    console.error('Could not read export analytics', error);
+    return NextResponse.json(
+      { error: 'Could not read export analytics right now.' },
+      { status: 503 },
+    );
   }
 }

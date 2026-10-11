@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { DocumentPreview } from '@/components/DocumentPreview';
+import { ExportShareDialog } from '@/components/ExportShareDialog';
 import { Icon } from '@/components/Icon';
 import { readCoverDraft } from '@/lib/document/coverDraft';
 import { exportAssignmentPdf, exportAssignmentWord } from '@/lib/document/export';
@@ -33,6 +34,8 @@ export default function DocumentPage() {
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [exporting, setExporting] = useState<'pdf' | 'word' | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [showSurvey, setShowSurvey] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>('local');
   const [hasCover, setHasCover] = useState(false);
   const skipNextPush = useRef(true);
@@ -109,7 +112,7 @@ export default function DocumentPage() {
     setExportError(null);
 
     if (!user) {
-      setExportError('Create an account to export documents. Signed-in users are tracked and protected from local tampering.');
+      setExportError('Sign in or create an account to download your assignment.');
       router.push('/signup?next=/document');
       return;
     }
@@ -126,11 +129,6 @@ export default function DocumentPage() {
       } else {
         await exportAssignmentWord(draft);
       }
-      await fetch('/api/exports/record', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kind: 'document', format: kind }),
-      });
     } catch (error) {
       console.error(error);
       const offline = typeof navigator !== 'undefined' && !navigator.onLine;
@@ -147,9 +145,36 @@ export default function DocumentPage() {
                 ? 'Could not create the PDF. Check the preview and try again.'
                 : 'Could not create the Word file. Check the preview and try again.',
       );
-    } finally {
       setExporting(null);
+      return;
     }
+
+    let shouldShowSurvey = false;
+    try {
+      const response = await fetch('/api/exports/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'document', format: kind }),
+      });
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        console.error('Export tracking failed', response.status);
+        setExportError(
+          payload?.error ?? 'Your file was created, but its usage could not be recorded.',
+        );
+      } else {
+        const result = (await response.json()) as { showSurvey?: boolean };
+        shouldShowSurvey = result.showSurvey === true;
+      }
+    } catch (error) {
+      console.error('Export tracking failed', error);
+      setExportError('Your file was created, but its usage could not be recorded.');
+    }
+    setExporting(null);
+    setShowSurvey(shouldShowSurvey);
+    setShareDialogOpen(true);
   };
 
   const saveLabel =
@@ -163,6 +188,17 @@ export default function DocumentPage() {
 
   const exportButtons = (
     <div className="flex flex-wrap items-center justify-end gap-2">
+      <button
+        type="button"
+        onClick={() => {
+          setShowSurvey(false);
+          setShareDialogOpen(true);
+        }}
+        className="bg-surface-strong text-foreground border border-outline-variant/30 px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:bg-surface transition-colors shadow-soft focus-ring"
+      >
+        <Icon name="share" className="text-[18px]" />
+        Share
+      </button>
       <button
         type="button"
         onClick={() => runExport('pdf')}
@@ -207,7 +243,7 @@ export default function DocumentPage() {
           ) : null}
           {!user && isClient ? (
             <p className="mt-1 text-sm text-secondary">
-              Sign in to export. Export usage is tracked to each account so local browser tricks cannot bypass the limit.
+              Sign in to download your assignment.
             </p>
           ) : null}
         </div>
@@ -315,6 +351,12 @@ export default function DocumentPage() {
           </div>
         </section>
       </div>
+      {shareDialogOpen ? (
+        <ExportShareDialog
+          onClose={() => setShareDialogOpen(false)}
+          showSurvey={showSurvey}
+        />
+      ) : null}
     </div>
   );
 }
