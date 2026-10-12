@@ -102,11 +102,12 @@ The administrator dashboard is available at `/usage`. To enable it:
 3. In local `.env.local` and your hosting provider's server-side environment variables, set:
    - `ADMIN_UID` to the copied UID
    - `FIREBASE_SERVICE_ACCOUNT_KEY` to the complete JSON key from Firebase Console → **Project settings → Service accounts → Generate new private key**
-4. Redeploy after changing production environment variables, then sign in with that account and open `/usage`.
+4. Use Node.js 22.x for the Vercel project runtime. Firebase Admin Auth depends on an ESM-only JOSE package that fails when loaded by older Node runtimes.
+5. Redeploy after changing production environment variables or the Node.js version, then sign in with that account and open `/usage`.
 
-The service-account key is a server secret: never use a `NEXT_PUBLIC_` prefix, commit the key, or share it. Only the configured UID can read analytics. Export events are written by the server using the Admin SDK, so `exportEvents` is denied to direct client reads and writes by [`firestore.rules`](./firestore.rules). Deploy the updated rules with `firebase deploy --only firestore:rules`.
+The service-account key is a server secret: never use a `NEXT_PUBLIC_` prefix, commit the key, or share it. Only the configured UID can read analytics. Export events and guest export limits are written by the server using the Admin SDK, so `exportEvents`, `userExportStats`, `guestExportStats`, and `exportSurveyResponses` are denied to direct client reads and writes by [`firestore.rules`](./firestore.rules). Deploy the updated rules with `firebase deploy --only firestore:rules`.
 
-These counts represent recorded export actions, not independently verified downloads: PDF and Word files are still generated in the browser.
+Signed-out visitors can make one free export per browser cookie, shared between cover and document exports. Later exports require an account. The guest limit is intended to prevent repeat use in normal browsing; clearing cookies or using another browser may reset it. Guest exports are recorded without a Firebase account and are shown separately in the dashboard. These counts represent recorded export actions, not independently verified downloads: PDF and Word files are still generated in the browser.
 
 <!-- ## 3. Buy Me a Coffee (optional) -->
 

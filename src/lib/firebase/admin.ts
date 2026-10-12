@@ -59,6 +59,10 @@ export function getFirebaseAdminAuth() {
   return getAuth(getAdminApp());
 }
 
+export function getFirebaseAdminSigningKey(): string {
+  return readServiceAccount().privateKey;
+}
+
 export function getFirebaseAdminFirestore() {
   return getFirestore(getAdminApp());
 }

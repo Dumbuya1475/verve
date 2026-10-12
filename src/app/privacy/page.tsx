@@ -32,10 +32,14 @@ export default function PrivacyPage() {
             account so they can sync between devices. Cover-page drafts are stored in your browser.
           </p>
           <p className="mt-2">
-            When you export while signed in, Verve records your account identifier, export type,
-            file format, and time to count usage. After your fourth recorded export, Verve may ask
-            for an optional rating and comment. If you send feedback, your message and any name,
-            email, or account identifier supplied with it are stored for the Verve team.
+            You can make one free export without signing in. To limit repeat guest exports, Verve
+            stores a random, signed identifier in a necessary browser cookie and records the
+            export type, file format, and time. Clearing or changing browser cookies may reset this
+            guest limit. When you export while signed in, Verve records your account identifier,
+            export type, file format, and time to count usage. After your fourth recorded account
+            export, Verve may ask for an optional rating and comment. If you send feedback, your
+            message and any name, email, or account identifier supplied with it are stored for the
+            Verve team.
           </p>
         </section>
 

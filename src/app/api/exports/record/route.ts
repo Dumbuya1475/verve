@@ -141,16 +141,19 @@ export async function GET() {
   try {
     const firestore = getFirebaseAdminFirestore();
     const [snapshot, userCount] = await Promise.all([
-      firestore.collection('exportEvents').select('uid', 'kind').get(),
+      firestore.collection('exportEvents').select('uid', 'guestId', 'kind').get(),
       countRegisteredUsers(),
     ]);
     const usersWhoExported = new Set<string>();
     const exportsByKind: Record<string, number> = {};
+    let guestExports = 0;
 
     for (const document of snapshot.docs) {
       const uid: unknown = document.get('uid');
+      const guestId: unknown = document.get('guestId');
       const kind: unknown = document.get('kind');
       if (typeof uid === 'string' && uid) usersWhoExported.add(uid);
+      if (typeof guestId === 'string' && guestId) guestExports += 1;
       if (typeof kind === 'string' && kind) {
         exportsByKind[kind] = (exportsByKind[kind] ?? 0) + 1;
       }
@@ -162,6 +165,7 @@ export async function GET() {
         totalExports: snapshot.size,
         registeredUsers: userCount,
         usersWhoExported: usersWhoExported.size,
+        guestExports,
         exportsByKind,
         generatedAt: new Date().toISOString(),
       },

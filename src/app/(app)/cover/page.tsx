@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { CoverPreview } from "@/components/CoverPreview";
 import { ExportShareDialog } from "@/components/ExportShareDialog";
 import { Icon } from "@/components/Icon";
 import { exportCoverPdf, exportCoverWord } from "@/lib/cover/export";
 import { warmExportModules } from "@/lib/cover/warmExports";
+import {
+  cancelGuestExport,
+  completeGuestExport,
+  reserveGuestExport,
+} from "@/lib/exports/guestClient";
 import type { CoverFormData, CoverType, GroupMember } from "@/lib/cover/types";
 
 const DEFAULT_FORM: CoverFormData = {
@@ -30,8 +34,7 @@ const inputClass =
   "w-full min-w-0 bg-surface border border-outline-variant/30 rounded-control px-4 py-2.5 focus-ring focus:bg-surface-strong transition-all text-base";
 
 export default function CoverPage() {
-  const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [isClient, setIsClient] = useState(false);
   const [mobileTab, setMobileTab] = useState<"editor" | "preview">("editor");
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -123,16 +126,27 @@ export default function CoverPage() {
 
   const runExport = async (kind: "pdf" | "word") => {
     if (exporting) return;
-    // Exports require a signed-in account and are generated locally.
     setExportError(null);
 
-    if (!user) {
-      setExportError("Sign in or create an account to download your cover.");
-      router.push("/signup?next=/cover");
+    if (authLoading) {
+      setExportError("Checking your sign-in status. Please try again in a moment.");
       return;
     }
 
     setExporting(kind);
+    let guestReservationId: string | null = null;
+    if (!user) {
+      try {
+        guestReservationId = await reserveGuestExport("cover", kind);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Could not verify your free export.";
+        setExportError(message);
+        setExporting(null);
+        return;
+      }
+    }
+
     try {
       if (kind === "pdf") {
         await exportCoverPdf({ type, formData, groupMembers });
@@ -141,6 +155,13 @@ export default function CoverPage() {
       }
     } catch (error) {
       console.error(error);
+      if (guestReservationId) {
+        try {
+          await cancelGuestExport(guestReservationId);
+        } catch (cancelError) {
+          console.error("Could not release failed guest export reservation", cancelError);
+        }
+      }
       const offline = typeof navigator !== "undefined" && !navigator.onLine;
       setExportError(
         offline
@@ -156,29 +177,40 @@ export default function CoverPage() {
     }
 
     let shouldShowSurvey = false;
-    try {
-      const response = await fetch("/api/exports/record", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind: "cover", format: kind }),
-      });
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as
-          | { error?: string }
-          | null;
-        console.error("Export tracking failed", response.status);
+    if (guestReservationId) {
+      try {
+        await completeGuestExport(guestReservationId);
+      } catch (error) {
+        console.error("Guest export tracking failed", error);
         setExportError(
-          payload?.error ?? "Your file was created, but its usage could not be recorded.",
+          "Your file was created, but its guest export could not be recorded. Keep this browser open and try again shortly.",
         );
-      } else {
-        const result = (await response.json()) as { showSurvey?: boolean };
-        shouldShowSurvey = result.showSurvey === true;
       }
-    } catch (error) {
-      console.error("Export tracking failed", error);
-      setExportError(
-        "Your file was created, but the app server could not be reached to record usage. Check your connection and try again when the app is available.",
-      );
+    } else {
+      try {
+        const response = await fetch("/api/exports/record", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kind: "cover", format: kind }),
+        });
+        if (!response.ok) {
+          const payload = (await response.json().catch(() => null)) as
+            | { error?: string }
+            | null;
+          console.error("Export tracking failed", response.status);
+          setExportError(
+            payload?.error ?? "Your file was created, but its usage could not be recorded.",
+          );
+        } else {
+          const result = (await response.json()) as { showSurvey?: boolean };
+          shouldShowSurvey = result.showSurvey === true;
+        }
+      } catch (error) {
+        console.error("Export tracking failed", error);
+        setExportError(
+          "Your file was created, but the app server could not be reached to record usage. Check your connection and try again when the app is available.",
+        );
+      }
     }
     setExporting(null);
     setShowSurvey(shouldShowSurvey);
@@ -242,7 +274,7 @@ export default function CoverPage() {
           </p>
           {!user && isClient ? (
             <p className="mt-2 text-sm text-secondary">
-              Sign in to download your cover.
+              Try one free export without an account. Create an account for more.
               {" "}
               <Link
                 href="/signup?next=/cover"
@@ -258,7 +290,18 @@ export default function CoverPage() {
 
       {exportError && (
         <div className="mb-4 flex items-start justify-between gap-3 rounded-control bg-error-container px-4 py-3 text-sm text-error">
-          <p>{exportError}</p>
+          <div>
+            <p>{exportError}</p>
+            {exportError.includes("free export has been used") ||
+            exportError.includes("guest export session expired") ? (
+              <Link
+                href="/signup?next=/cover"
+                className="mt-1 inline-block font-semibold text-primary underline focus-ring"
+              >
+                Create an account to continue
+              </Link>
+            ) : null}
+          </div>
           <button
             type="button"
             className="shrink-0 font-medium focus-ring rounded-control"

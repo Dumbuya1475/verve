@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { DocumentPreview } from '@/components/DocumentPreview';
 import { ExportShareDialog } from '@/components/ExportShareDialog';
@@ -11,6 +10,11 @@ import { readCoverDraft } from '@/lib/document/coverDraft';
 import { exportAssignmentPdf, exportAssignmentWord } from '@/lib/document/export';
 import { readLocalAssignment, writeLocalAssignment } from '@/lib/document/storage';
 import { warmExportModules } from '@/lib/cover/warmExports';
+import {
+  cancelGuestExport,
+  completeGuestExport,
+  reserveGuestExport,
+} from '@/lib/exports/guestClient';
 import { pullRemoteAssignment, pushRemoteAssignment } from '@/lib/document/sync';
 import {
   ASSIGNMENT_SECTIONS,
@@ -27,7 +31,6 @@ const textareaClass = `${inputClass} min-h-36 resize-y`;
 type SaveState = 'local' | 'synced' | 'syncing' | 'offline';
 
 export default function DocumentPage() {
-  const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [isClient, setIsClient] = useState(false);
   const [draft, setDraft] = useState<AssignmentDraft>(emptyAssignment);
@@ -130,12 +133,10 @@ export default function DocumentPage() {
 
   const runExport = async (kind: 'pdf' | 'word') => {
     if (exporting) return;
-    // Same as cover: never block exports on Firebase session restore.
     setExportError(null);
 
-    if (!user) {
-      setExportError('Sign in or create an account to download your assignment.');
-      router.push('/signup?next=/document');
+    if (authLoading) {
+      setExportError('Checking your sign-in status. Please try again in a moment.');
       return;
     }
 
@@ -145,6 +146,19 @@ export default function DocumentPage() {
     }
 
     setExporting(kind);
+    let guestReservationId: string | null = null;
+    if (!user) {
+      try {
+        guestReservationId = await reserveGuestExport('document', kind);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Could not verify your free export.';
+        setExportError(message);
+        setExporting(null);
+        return;
+      }
+    }
+
     try {
       if (kind === 'pdf') {
         await exportAssignmentPdf(draft);
@@ -153,6 +167,13 @@ export default function DocumentPage() {
       }
     } catch (error) {
       console.error(error);
+      if (guestReservationId) {
+        try {
+          await cancelGuestExport(guestReservationId);
+        } catch (cancelError) {
+          console.error('Could not release failed guest export reservation', cancelError);
+        }
+      }
       const offline = typeof navigator !== 'undefined' && !navigator.onLine;
       setExportError(
         error instanceof Error && (error.message.includes('cover') || error.message.includes('Add cover'))
@@ -172,29 +193,40 @@ export default function DocumentPage() {
     }
 
     let shouldShowSurvey = false;
-    try {
-      const response = await fetch('/api/exports/record', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kind: 'document', format: kind }),
-      });
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as
-          | { error?: string }
-          | null;
-        console.error('Export tracking failed', response.status);
+    if (guestReservationId) {
+      try {
+        await completeGuestExport(guestReservationId);
+      } catch (error) {
+        console.error('Guest export tracking failed', error);
         setExportError(
-          payload?.error ?? 'Your file was created, but its usage could not be recorded.',
+          'Your file was created, but its guest export could not be recorded. Keep this browser open and try again shortly.',
         );
-      } else {
-        const result = (await response.json()) as { showSurvey?: boolean };
-        shouldShowSurvey = result.showSurvey === true;
       }
-    } catch (error) {
-      console.error('Export tracking failed', error);
-      setExportError(
-        'Your file was created, but the app server could not be reached to record usage. Check your connection and try again when the app is available.',
-      );
+    } else {
+      try {
+        const response = await fetch('/api/exports/record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kind: 'document', format: kind }),
+        });
+        if (!response.ok) {
+          const payload = (await response.json().catch(() => null)) as
+            | { error?: string }
+            | null;
+          console.error('Export tracking failed', response.status);
+          setExportError(
+            payload?.error ?? 'Your file was created, but its usage could not be recorded.',
+          );
+        } else {
+          const result = (await response.json()) as { showSurvey?: boolean };
+          shouldShowSurvey = result.showSurvey === true;
+        }
+      } catch (error) {
+        console.error('Export tracking failed', error);
+        setExportError(
+          'Your file was created, but the app server could not be reached to record usage. Check your connection and try again when the app is available.',
+        );
+      }
     }
     setExporting(null);
     setShowSurvey(shouldShowSurvey);
@@ -267,7 +299,7 @@ export default function DocumentPage() {
           ) : null}
           {!user && isClient ? (
             <p className="mt-1 text-sm text-secondary">
-              Sign in to download your assignment.
+              Try one free export without an account. Create an account for more.
             </p>
           ) : null}
         </div>
@@ -276,7 +308,18 @@ export default function DocumentPage() {
 
       {exportError ? (
         <div className="mb-4 flex items-start justify-between gap-3 rounded-control bg-error-container px-4 py-3 text-sm text-error">
-          <p>{exportError}</p>
+          <div>
+            <p>{exportError}</p>
+            {exportError.includes('free export has been used') ||
+            exportError.includes('guest export session expired') ? (
+              <Link
+                href="/signup?next=/document"
+                className="mt-1 inline-block font-semibold text-primary underline focus-ring"
+              >
+                Create an account to continue
+              </Link>
+            ) : null}
+          </div>
           <button type="button" className="shrink-0 font-medium focus-ring rounded-control" onClick={() => setExportError(null)}>
             Dismiss
           </button>
