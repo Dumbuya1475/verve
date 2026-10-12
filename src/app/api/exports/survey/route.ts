@@ -14,6 +14,59 @@ const surveySchema = z.object({
   comment: z.string().trim().max(1200, 'Keep your note under 1,200 characters.'),
 });
 
+export async function GET() {
+  const sessionToken = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (!sessionToken) {
+    return NextResponse.json({ error: 'Sign in to check your survey.' }, { status: 401 });
+  }
+
+  let sessionUser;
+  try {
+    sessionUser = await verifyFirebaseSession(sessionToken);
+  } catch (error) {
+    console.error('Firebase session verification failed for export survey', error);
+    return NextResponse.json(
+      { error: 'Could not verify your session right now.' },
+      { status: 503 },
+    );
+  }
+
+  if (!sessionUser) {
+    return NextResponse.json({ error: 'Sign in to check your survey.' }, { status: 401 });
+  }
+
+  try {
+    const firestore = getFirebaseAdminFirestore();
+    const statsRef = firestore.collection('userExportStats').doc(sessionUser.uid);
+    const responseRef = firestore.collection('exportSurveyResponses').doc(sessionUser.uid);
+    const [statsSnapshot, responseSnapshot] = await Promise.all([
+      statsRef.get(),
+      responseRef.get(),
+    ]);
+
+    let exportCount = statsSnapshot.data()?.exportCount;
+    if (typeof exportCount !== 'number') {
+      const events = await firestore
+        .collection('exportEvents')
+        .where('uid', '==', sessionUser.uid)
+        .count()
+        .get();
+      exportCount = events.data().count;
+    }
+
+    return NextResponse.json(
+      { eligible: exportCount >= 4 && !responseSnapshot.exists },
+      { headers: { 'Cache-Control': 'no-store' } },
+    );
+  } catch (error) {
+    console.error('Could not check export survey status', error);
+    return NextResponse.json(
+      { error: 'Could not check your survey status right now.' },
+      { status: 503 },
+    );
+  }
+}
+
 export async function POST(request: Request) {
   let json: unknown;
   try {
@@ -57,7 +110,14 @@ export async function POST(request: Request) {
     const result = await firestore.runTransaction(async (transaction) => {
       const statsSnapshot = await transaction.get(statsRef);
       const existing = await transaction.get(responseRef);
-      if ((statsSnapshot.data()?.exportCount ?? 0) < 4) return 'under-threshold';
+      let exportCount = statsSnapshot.data()?.exportCount;
+      if (typeof exportCount !== 'number') {
+        const events = await transaction.get(
+          firestore.collection('exportEvents').where('uid', '==', sessionUser.uid),
+        );
+        exportCount = events.size;
+      }
+      if (exportCount < 4) return 'under-threshold';
       if (existing.exists) return 'duplicate';
       transaction.create(responseRef, {
         uid: sessionUser.uid,

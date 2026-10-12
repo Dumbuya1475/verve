@@ -157,6 +157,14 @@ export function SignupForm() {
         </button>
       </form>
 
+      <p className="text-center text-xs leading-relaxed text-secondary">
+        By creating an account, you agree to our{' '}
+        <Link href="/privacy" className="font-medium text-primary hover:underline focus-ring">
+          Privacy Policy
+        </Link>
+        .
+      </p>
+
       <button
         type="button"
         onClick={handleGoogle}

@@ -66,6 +66,28 @@ export default function CoverPage() {
   }, []);
 
   useEffect(() => {
+    if (!user?.uid) return;
+    let cancelled = false;
+
+    void fetch('/api/exports/survey', { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) return;
+        const result = (await response.json()) as { eligible?: boolean };
+        if (!cancelled && result.eligible) {
+          setShowSurvey(true);
+          setShareDialogOpen(true);
+        }
+      })
+      .catch((error: unknown) => {
+        console.error('Could not check export survey eligibility', error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.uid]);
+
+  useEffect(() => {
     if (!isClient) return;
     localStorage.setItem("coverType", type);
     localStorage.setItem("coverFormData", JSON.stringify(formData));

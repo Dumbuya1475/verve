@@ -289,6 +289,9 @@ export default function LandingPage() {
                 <Link className="text-sm text-secondary transition-colors hover:text-primary" href="/login">
                   Sign in
                 </Link>
+                <Link className="text-sm text-secondary transition-colors hover:text-primary" href="/privacy">
+                  Privacy policy
+                </Link>
               </nav>
             </div>
             <div className="flex flex-col gap-5">

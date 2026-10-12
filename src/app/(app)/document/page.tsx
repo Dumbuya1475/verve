@@ -50,6 +50,28 @@ export default function DocumentPage() {
   }, []);
 
   useEffect(() => {
+    if (authLoading || !userId) return;
+    let cancelled = false;
+
+    void fetch('/api/exports/survey', { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) return;
+        const result = (await response.json()) as { eligible?: boolean };
+        if (!cancelled && result.eligible) {
+          setShowSurvey(true);
+          setShareDialogOpen(true);
+        }
+      })
+      .catch((error: unknown) => {
+        console.error('Could not check export survey eligibility', error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, userId]);
+
+  useEffect(() => {
     if (!isClient || authLoading) return;
     if (!userId) {
       skipNextPush.current = true;

@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { SESSION_COOKIE } from '@/lib/firebase/session';
 import {
+  getFirebaseAdminAuth,
   getConfiguredAdminUid,
   getFirebaseAdminFirestore,
   verifyFirebaseSession,
@@ -54,10 +55,12 @@ export async function POST(request: Request) {
 
   try {
     const firestore = getFirebaseAdminFirestore();
+    const surveyRef = firestore.collection('exportSurveyResponses').doc(sessionUser.uid);
     const eventRef = firestore.collection('exportEvents').doc();
     const userStatsRef = firestore.collection('userExportStats').doc(sessionUser.uid);
     const result = await firestore.runTransaction(async (transaction) => {
       const statsSnapshot = await transaction.get(userStatsRef);
+      const surveySnapshot = await transaction.get(surveyRef);
       const stats = statsSnapshot.data();
       const previousCount =
         typeof stats?.exportCount === 'number' && Number.isSafeInteger(stats.exportCount)
@@ -70,7 +73,7 @@ export async function POST(request: Request) {
                 )
               ).size;
       const exportCount = previousCount + 1;
-      const showSurvey = exportCount >= 4 && !stats?.surveyPromptedAt;
+      const showSurvey = exportCount >= 4 && !surveySnapshot.exists;
       const createdAt = new Date().toISOString();
 
       transaction.create(eventRef, {
@@ -84,7 +87,6 @@ export async function POST(request: Request) {
         {
           exportCount,
           lastExportAt: createdAt,
-          ...(showSurvey ? { surveyPromptedAt: createdAt } : {}),
         },
         { merge: true },
       );
@@ -137,17 +139,18 @@ export async function GET() {
   }
 
   try {
-    const snapshot = await getFirebaseAdminFirestore()
-      .collection('exportEvents')
-      .select('uid', 'kind')
-      .get();
-    const uniqueUsers = new Set<string>();
+    const firestore = getFirebaseAdminFirestore();
+    const [snapshot, userCount] = await Promise.all([
+      firestore.collection('exportEvents').select('uid', 'kind').get(),
+      countRegisteredUsers(),
+    ]);
+    const usersWhoExported = new Set<string>();
     const exportsByKind: Record<string, number> = {};
 
     for (const document of snapshot.docs) {
       const uid: unknown = document.get('uid');
       const kind: unknown = document.get('kind');
-      if (typeof uid === 'string' && uid) uniqueUsers.add(uid);
+      if (typeof uid === 'string' && uid) usersWhoExported.add(uid);
       if (typeof kind === 'string' && kind) {
         exportsByKind[kind] = (exportsByKind[kind] ?? 0) + 1;
       }
@@ -157,7 +160,8 @@ export async function GET() {
       {
         ok: true,
         totalExports: snapshot.size,
-        uniqueUsers: uniqueUsers.size,
+        registeredUsers: userCount,
+        usersWhoExported: usersWhoExported.size,
         exportsByKind,
         generatedAt: new Date().toISOString(),
       },
@@ -170,4 +174,15 @@ export async function GET() {
       { status: 503 },
     );
   }
+}
+
+async function countRegisteredUsers(): Promise<number> {
+  let userCount = 0;
+  let pageToken: string | undefined;
+  do {
+    const page = await getFirebaseAdminAuth().listUsers(1000, pageToken);
+    userCount += page.users.length;
+    pageToken = page.pageToken;
+  } while (pageToken);
+  return userCount;
 }

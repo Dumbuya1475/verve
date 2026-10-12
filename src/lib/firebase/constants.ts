@@ -10,6 +10,7 @@ export const PUBLIC_PATHS = [
   '/signup',
   '/forgot-password',
   '/feedback',
+  '/privacy',
 ] as const;
 
 export const PROTECTED_PREFIXES = [

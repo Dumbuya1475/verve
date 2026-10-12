@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 
 const EMPTY_STATS = {
   totalExports: 0,
-  uniqueUsers: 0,
+  registeredUsers: 0,
+  usersWhoExported: 0,
   exportsByKind: {} as Record<string, number>,
   generatedAt: null as string | null,
 };
@@ -34,7 +35,8 @@ export default function UsagePage() {
 
         let payload: {
           totalExports?: number;
-          uniqueUsers?: number;
+          registeredUsers?: number;
+          usersWhoExported?: number;
           exportsByKind?: Record<string, number>;
           generatedAt?: string | null;
           error?: string;
@@ -52,7 +54,8 @@ export default function UsagePage() {
         if (!cancelled) {
           setStats({
             totalExports: payload.totalExports ?? 0,
-            uniqueUsers: payload.uniqueUsers ?? 0,
+            registeredUsers: payload.registeredUsers ?? 0,
+            usersWhoExported: payload.usersWhoExported ?? 0,
             exportsByKind: payload.exportsByKind ?? {},
             generatedAt: payload.generatedAt ?? null,
           });
@@ -87,7 +90,7 @@ export default function UsagePage() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-container bg-surface-strong p-5 shadow-soft">
           <p className="text-sm text-secondary">Total exports</p>
           <p className="mt-3 text-3xl font-semibold text-foreground">
@@ -95,9 +98,15 @@ export default function UsagePage() {
           </p>
         </div>
         <div className="rounded-container bg-surface-strong p-5 shadow-soft">
-          <p className="text-sm text-secondary">Unique users</p>
+          <p className="text-sm text-secondary">Registered accounts</p>
           <p className="mt-3 text-3xl font-semibold text-foreground">
-            {loading ? '…' : stats.uniqueUsers}
+            {loading ? '…' : stats.registeredUsers}
+          </p>
+        </div>
+        <div className="rounded-container bg-surface-strong p-5 shadow-soft">
+          <p className="text-sm text-secondary">Accounts with exports</p>
+          <p className="mt-3 text-3xl font-semibold text-foreground">
+            {loading ? '…' : stats.usersWhoExported}
           </p>
         </div>
         <div className="rounded-container bg-surface-strong p-5 shadow-soft">
@@ -106,6 +115,12 @@ export default function UsagePage() {
             {loading ? '…' : stats.generatedAt ? new Date(stats.generatedAt).toLocaleString() : 'No data yet'}
           </p>
         </div>
+        <p className="text-sm leading-relaxed text-secondary">
+          Registered accounts counts Firebase Authentication users. Accounts with exports counts
+          distinct accounts with at least one event recorded by Verve; exports made before tracking
+          was configured are not included. The student survey appears after an account’s fourth
+          recorded export and remains available until submitted.
+        </p>
       </div>
 
       <div className="rounded-container bg-surface-strong p-5 shadow-soft">

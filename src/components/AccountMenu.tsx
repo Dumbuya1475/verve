@@ -112,6 +112,14 @@ export function AccountMenu() {
           >
             Send feedback
           </Link>
+          <Link
+            href="/usage"
+            role="menuitem"
+            className="block rounded-control px-3 py-2 text-sm font-medium text-foreground hover:bg-surface focus-ring"
+            onClick={() => setOpen(false)}
+          >
+            Usage dashboard (admin)
+          </Link>
           {hasBuyMeACoffee() ? (
             <a
               href={BUY_ME_A_COFFEE_URL}
