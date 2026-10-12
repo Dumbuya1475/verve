@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 
 const EMPTY_STATS = {
   totalExports: 0,
-  registeredUsers: 0,
   usersWhoExported: 0,
   guestExports: 0,
   exportsByKind: {} as Record<string, number>,
@@ -36,7 +35,6 @@ export default function UsagePage() {
 
         let payload: {
           totalExports?: number;
-          registeredUsers?: number;
           usersWhoExported?: number;
           guestExports?: number;
           exportsByKind?: Record<string, number>;
@@ -56,7 +54,6 @@ export default function UsagePage() {
         if (!cancelled) {
           setStats({
             totalExports: payload.totalExports ?? 0,
-            registeredUsers: payload.registeredUsers ?? 0,
             usersWhoExported: payload.usersWhoExported ?? 0,
             guestExports: payload.guestExports ?? 0,
             exportsByKind: payload.exportsByKind ?? {},
@@ -93,17 +90,11 @@ export default function UsagePage() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-container bg-surface-strong p-5 shadow-soft">
           <p className="text-sm text-secondary">Total exports</p>
           <p className="mt-3 text-3xl font-semibold text-foreground">
             {loading ? '…' : stats.totalExports}
-          </p>
-        </div>
-        <div className="rounded-container bg-surface-strong p-5 shadow-soft">
-          <p className="text-sm text-secondary">Registered accounts</p>
-          <p className="mt-3 text-3xl font-semibold text-foreground">
-            {loading ? '…' : stats.registeredUsers}
           </p>
         </div>
         <div className="rounded-container bg-surface-strong p-5 shadow-soft">
@@ -125,10 +116,10 @@ export default function UsagePage() {
           </p>
         </div>
         <p className="text-sm leading-relaxed text-secondary">
-          Registered accounts counts Firebase Authentication users. Accounts with exports counts
-          distinct accounts with at least one event recorded by Verve; exports made before tracking
-          was configured are not included. The student survey appears after an account’s fourth
-          recorded export and remains available until submitted.
+          Accounts with exports counts distinct signed-in accounts with at least one event recorded
+          by Verve. Free guest exports are counted separately. Exports made before tracking was
+          configured are not included. The student survey appears after an account’s fourth recorded
+          export and remains available until submitted.
         </p>
       </div>
 

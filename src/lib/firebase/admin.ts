@@ -1,7 +1,6 @@
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import type { DecodedIdToken } from 'firebase-admin/auth';
+import { verifyIdToken as verifyFirebaseIdToken } from './session';
 
 type ServiceAccount = {
   projectId: string;
@@ -10,16 +9,29 @@ type ServiceAccount = {
 };
 
 function readServiceAccount(): ServiceAccount {
-  const value = process.env.FIREBASE_SERVICE_ACCOUNT_KEY?.trim();
+  let value = process.env.FIREBASE_SERVICE_ACCOUNT_KEY?.trim();
   if (!value) {
     throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is not configured.');
+  }
+
+  const firstCharacter = value[0];
+  const lastCharacter = value[value.length - 1];
+  if (
+    (firstCharacter === "'" || firstCharacter === '"') &&
+    lastCharacter === firstCharacter &&
+    value.slice(1, -1).trim().startsWith('{') &&
+    value.slice(1, -1).trim().endsWith('}')
+  ) {
+    value = value.slice(1, -1).trim();
   }
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(value);
   } catch {
-    throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY must contain valid service-account JSON.');
+    throw new Error(
+      'FIREBASE_SERVICE_ACCOUNT_KEY must contain raw, valid service-account JSON without surrounding quotes.',
+    );
   }
 
   if (!parsed || typeof parsed !== 'object') {
@@ -55,7 +67,8 @@ function getAdminApp() {
   );
 }
 
-export function getFirebaseAdminAuth() {
+export async function getFirebaseAdminAuth() {
+  const { getAuth } = await import('firebase-admin/auth');
   return getAuth(getAdminApp());
 }
 
@@ -77,27 +90,6 @@ export function getConfiguredAdminUid(): string {
 
 export async function verifyFirebaseSession(
   idToken: string,
-): Promise<DecodedIdToken | null> {
-  try {
-    return await getFirebaseAdminAuth().verifyIdToken(idToken, true);
-  } catch (error) {
-    const code =
-      typeof error === 'object' && error !== null && 'code' in error
-        ? error.code
-        : undefined;
-    if (
-      typeof code === 'string' &&
-      [
-        'auth/argument-error',
-        'auth/id-token-expired',
-        'auth/id-token-revoked',
-        'auth/invalid-id-token',
-        'auth/user-disabled',
-        'auth/user-not-found',
-      ].includes(code)
-    ) {
-      return null;
-    }
-    throw error;
-  }
+): Promise<Awaited<ReturnType<typeof verifyFirebaseIdToken>>> {
+  return verifyFirebaseIdToken(idToken);
 }

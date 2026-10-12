@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { SESSION_COOKIE } from '@/lib/firebase/session';
 import {
-  getFirebaseAdminAuth,
   getConfiguredAdminUid,
   getFirebaseAdminFirestore,
   verifyFirebaseSession,
@@ -140,10 +139,10 @@ export async function GET() {
 
   try {
     const firestore = getFirebaseAdminFirestore();
-    const [snapshot, userCount] = await Promise.all([
-      firestore.collection('exportEvents').select('uid', 'guestId', 'kind').get(),
-      countRegisteredUsers(),
-    ]);
+    const snapshot = await firestore
+      .collection('exportEvents')
+      .select('uid', 'guestId', 'kind')
+      .get();
     const usersWhoExported = new Set<string>();
     const exportsByKind: Record<string, number> = {};
     let guestExports = 0;
@@ -163,7 +162,6 @@ export async function GET() {
       {
         ok: true,
         totalExports: snapshot.size,
-        registeredUsers: userCount,
         usersWhoExported: usersWhoExported.size,
         guestExports,
         exportsByKind,
@@ -178,15 +176,4 @@ export async function GET() {
       { status: 503 },
     );
   }
-}
-
-async function countRegisteredUsers(): Promise<number> {
-  let userCount = 0;
-  let pageToken: string | undefined;
-  do {
-    const page = await getFirebaseAdminAuth().listUsers(1000, pageToken);
-    userCount += page.users.length;
-    pageToken = page.pageToken;
-  } while (pageToken);
-  return userCount;
 }

@@ -119,7 +119,10 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Could not verify guest export identity', error);
     return NextResponse.json(
-      { error: 'Guest export tracking is not available right now.' },
+      {
+        error:
+          'Guest export tracking is not configured correctly on the server. Please try again later.',
+      },
       { status: 503 },
     );
   }
