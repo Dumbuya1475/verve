@@ -30,6 +30,9 @@ const guestExportActionSchema = z.discriminatedUnion('action', [
     action: z.literal('cancel'),
     reservationId: z.string().uuid(),
   }),
+  z.object({
+    action: z.literal('record-print'),
+  }),
 ]);
 
 type GuestCookieIdentity = {
@@ -115,7 +118,9 @@ export async function POST(request: Request) {
 
   let identity: GuestCookieIdentity | null;
   try {
-    identity = await getGuestIdentity(parsed.data.action === 'reserve');
+    identity = await getGuestIdentity(
+      parsed.data.action === 'reserve' || parsed.data.action === 'record-print',
+    );
   } catch (error) {
     console.error('Could not verify guest export identity', error);
     return NextResponse.json(
@@ -138,6 +143,16 @@ export async function POST(request: Request) {
     const firestore = getFirebaseAdminFirestore();
     const guestRef = firestore.collection('guestExportStats').doc(identity.id);
     const now = Date.now();
+
+    if (parsed.data.action === 'record-print') {
+      await firestore.collection('exportEvents').add({
+        guestId: identity.id,
+        kind: 'cover',
+        format: 'print',
+        createdAt: new Date().toISOString(),
+      });
+      return withGuestCookie(NextResponse.json({ ok: true }), identity);
+    }
 
     if (parsed.data.action === 'reserve') {
       const reservation = parsed.data;

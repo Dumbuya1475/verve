@@ -7,6 +7,7 @@ const EMPTY_STATS = {
   usersWhoExported: 0,
   guestExports: 0,
   exportsByKind: {} as Record<string, number>,
+  exportsByFormat: {} as Record<string, number>,
   generatedAt: null as string | null,
 };
 
@@ -38,6 +39,7 @@ export default function UsagePage() {
           usersWhoExported?: number;
           guestExports?: number;
           exportsByKind?: Record<string, number>;
+          exportsByFormat?: Record<string, number>;
           generatedAt?: string | null;
           error?: string;
         };
@@ -57,6 +59,7 @@ export default function UsagePage() {
             usersWhoExported: payload.usersWhoExported ?? 0,
             guestExports: payload.guestExports ?? 0,
             exportsByKind: payload.exportsByKind ?? {},
+            exportsByFormat: payload.exportsByFormat ?? {},
             generatedAt: payload.generatedAt ?? null,
           });
         }
@@ -76,6 +79,7 @@ export default function UsagePage() {
   }, []);
 
   const kindEntries = Object.entries(stats.exportsByKind).sort(([left], [right]) => left.localeCompare(right));
+  const formatEntries = Object.entries(stats.exportsByFormat).sort(([left], [right]) => left.localeCompare(right));
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -117,9 +121,10 @@ export default function UsagePage() {
         </div>
         <p className="text-sm leading-relaxed text-secondary">
           Accounts with exports counts distinct signed-in accounts with at least one event recorded
-          by Verve. Free guest exports are counted separately. Exports made before tracking was
+          by Verve. Free guest file exports are counted separately. Print attempts are included in
+          total exports, but do not use a guest&apos;s free file export. Exports made before tracking was
           configured are not included. The student survey appears after an account’s fourth recorded
-          export and remains available until submitted.
+          file export and remains available until submitted.
         </p>
       </div>
 
@@ -134,6 +139,24 @@ export default function UsagePage() {
             {kindEntries.map(([kind, count]) => (
               <li key={kind} className="flex items-center justify-between gap-4 rounded-control bg-surface p-3">
                 <span className="text-sm font-medium capitalize text-foreground">{kind}</span>
+                <span className="text-sm font-semibold text-primary">{count}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="rounded-container bg-surface-strong p-5 shadow-soft">
+        <h2 className="text-xl font-semibold text-foreground">By format</h2>
+        {loading ? (
+          <p className="mt-4 text-sm text-secondary">Loading format counts…</p>
+        ) : formatEntries.length === 0 ? (
+          <p className="mt-4 text-sm text-secondary">No formats have been recorded yet.</p>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {formatEntries.map(([format, count]) => (
+              <li key={format} className="flex items-center justify-between gap-4 rounded-control bg-surface p-3">
+                <span className="text-sm font-medium capitalize text-foreground">{format}</span>
                 <span className="text-sm font-semibold text-primary">{count}</span>
               </li>
             ))}

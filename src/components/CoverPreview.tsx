@@ -62,3 +62,23 @@ export function CoverPreview({ type, formData, groupMembers }: CoverPreviewProps
     </div>
   );
 }
+
+export function CoverPrintView({ type, formData, groupMembers }: CoverPreviewProps) {
+  const html = useMemo(
+    () =>
+      buildCoverInnerHtml({
+        type,
+        formData,
+        groupMembers,
+        logoSrc: COVER_LOGO_PATH,
+      }),
+    [type, formData, groupMembers],
+  );
+
+  return (
+    <div id="cover-print-root" className="hidden" aria-hidden="true">
+      <style>{COVER_PAGE_CSS}</style>
+      <div dangerouslySetInnerHTML={{ __html: html }} />
+    </div>
+  );
+}

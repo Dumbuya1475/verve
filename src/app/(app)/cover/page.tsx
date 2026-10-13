@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
-import { CoverPreview } from "@/components/CoverPreview";
+import { CoverPreview, CoverPrintView } from "@/components/CoverPreview";
 import { ExportShareDialog } from "@/components/ExportShareDialog";
 import { Icon } from "@/components/Icon";
 import { exportCoverPdf, exportCoverWord } from "@/lib/cover/export";
@@ -124,6 +124,38 @@ export default function CoverPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handlePrint = () => {
+    setExportError(null);
+    window.print();
+
+    void (async () => {
+      try {
+        const response = user
+          ? await fetch("/api/exports/record", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ kind: "cover", format: "print" }),
+            })
+          : await fetch("/api/exports/guest", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "record-print" }),
+            });
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        if (!response.ok) {
+          throw new Error(payload?.error ?? "Could not record print usage.");
+        }
+      } catch (error) {
+        console.error("Print usage tracking failed", error);
+        setExportError(
+          "The print dialog was opened, but the print attempt could not be recorded. Check your connection and try again.",
+        );
+      }
+    })();
+  };
+
   const runExport = async (kind: "pdf" | "word") => {
     if (exporting) return;
     setExportError(null);
@@ -240,6 +272,14 @@ export default function CoverPage() {
           <Icon name="zoom_in" />
         </span>
       </button>
+      {/* <button
+        type="button"
+        onClick={handlePrint}
+        className="bg-surface-strong text-foreground border border-outline-variant/30 px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:bg-surface active:scale-95 transition-all shadow-soft focus-ring"
+      >
+        <Icon name="print" className="text-[18px]" />
+        Print
+      </button> */}
       <button
         type="button"
         onClick={() => runExport("pdf")}
@@ -263,6 +303,11 @@ export default function CoverPage() {
 
   return (
     <div className="flex min-h-0 flex-col">
+      <CoverPrintView
+        type={type}
+        formData={formData}
+        groupMembers={groupMembers}
+      />
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">

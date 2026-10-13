@@ -12,7 +12,7 @@ export const runtime = 'nodejs';
 
 const exportBodySchema = z.object({
   kind: z.enum(['cover', 'document']),
-  format: z.enum(['pdf', 'docx', 'word']),
+  format: z.enum(['pdf', 'docx', 'word', 'print']),
 });
 
 async function getSessionUser() {
@@ -54,6 +54,16 @@ export async function POST(request: Request) {
 
   try {
     const firestore = getFirebaseAdminFirestore();
+    if (parsed.data.format === 'print') {
+      await firestore.collection('exportEvents').add({
+        uid: sessionUser.uid,
+        kind: parsed.data.kind,
+        format: parsed.data.format,
+        createdAt: new Date().toISOString(),
+      });
+      return NextResponse.json({ ok: true, showSurvey: false });
+    }
+
     const surveyRef = firestore.collection('exportSurveyResponses').doc(sessionUser.uid);
     const eventRef = firestore.collection('exportEvents').doc();
     const userStatsRef = firestore.collection('userExportStats').doc(sessionUser.uid);
@@ -141,20 +151,31 @@ export async function GET() {
     const firestore = getFirebaseAdminFirestore();
     const snapshot = await firestore
       .collection('exportEvents')
-      .select('uid', 'guestId', 'kind')
+      .select('uid', 'guestId', 'kind', 'format')
       .get();
     const usersWhoExported = new Set<string>();
     const exportsByKind: Record<string, number> = {};
+    const exportsByFormat: Record<string, number> = {};
     let guestExports = 0;
 
     for (const document of snapshot.docs) {
       const uid: unknown = document.get('uid');
       const guestId: unknown = document.get('guestId');
       const kind: unknown = document.get('kind');
+      const format: unknown = document.get('format');
       if (typeof uid === 'string' && uid) usersWhoExported.add(uid);
-      if (typeof guestId === 'string' && guestId) guestExports += 1;
+      if (
+        typeof guestId === 'string' &&
+        guestId &&
+        format !== 'print'
+      ) {
+        guestExports += 1;
+      }
       if (typeof kind === 'string' && kind) {
         exportsByKind[kind] = (exportsByKind[kind] ?? 0) + 1;
+      }
+      if (typeof format === 'string' && format) {
+        exportsByFormat[format] = (exportsByFormat[format] ?? 0) + 1;
       }
     }
 
@@ -165,6 +186,7 @@ export async function GET() {
         usersWhoExported: usersWhoExported.size,
         guestExports,
         exportsByKind,
+        exportsByFormat,
         generatedAt: new Date().toISOString(),
       },
       { headers: { 'Cache-Control': 'no-store' } },

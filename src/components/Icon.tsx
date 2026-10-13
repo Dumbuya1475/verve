@@ -4,6 +4,7 @@ export type IconName =
   | 'home'
   | 'description'
   | 'picture_as_pdf'
+  | 'print'
   | 'chat'
   | 'zoom_in'
   | 'add_circle'
@@ -53,6 +54,14 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M6 2.5h8L19.5 8v13.5h-13.5z" />
       <path d="M13.5 2.5V8H19.5" />
       <path d="M9 13h6M9 16.5h4" />
+    </>
+  ),
+  print: (
+    <>
+      <path d="M7 8V3.5h10V8" />
+      <path d="M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" />
+      <path d="M7 14h10v7H7z" />
+      <path d="M17 11.5h.01" />
     </>
   ),
   chat: (
