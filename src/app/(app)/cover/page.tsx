@@ -6,6 +6,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { CoverPreview } from "@/components/CoverPreview";
 import { ExportShareDialog } from "@/components/ExportShareDialog";
 import { Icon } from "@/components/Icon";
+import { trackExportCompleted } from "@/lib/firebase/analytics";
 import { exportCoverPdf, exportCoverWord } from "@/lib/cover/export";
 import { warmExportModules } from "@/lib/cover/warmExports";
 import {
@@ -175,6 +176,8 @@ export default function CoverPage() {
       setExporting(null);
       return;
     }
+
+    void trackExportCompleted("cover", kind, Boolean(user));
 
     let shouldShowSurvey = false;
     if (guestReservationId) {

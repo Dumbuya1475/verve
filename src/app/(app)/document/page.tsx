@@ -6,6 +6,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { DocumentPreview } from '@/components/DocumentPreview';
 import { ExportShareDialog } from '@/components/ExportShareDialog';
 import { Icon } from '@/components/Icon';
+import { trackExportCompleted } from '@/lib/firebase/analytics';
 import { readCoverDraft } from '@/lib/document/coverDraft';
 import { exportAssignmentPdf, exportAssignmentWord } from '@/lib/document/export';
 import { readLocalAssignment, writeLocalAssignment } from '@/lib/document/storage';
@@ -191,6 +192,8 @@ export default function DocumentPage() {
       setExporting(null);
       return;
     }
+
+    void trackExportCompleted('document', kind, Boolean(user));
 
     let shouldShowSurvey = false;
     if (guestReservationId) {

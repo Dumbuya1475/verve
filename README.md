@@ -73,15 +73,17 @@ Without Firebase keys the landing page and cover editor still load. Sign-in and 
    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
    NEXT_PUBLIC_FIREBASE_APP_ID=
+   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
    ```
 
-3. **Authentication → Sign-in method**
+3. In Firebase **Project settings → Integrations**, enable Google Analytics for the project if it is not enabled. Copy the web app's **Measurement ID** (`G-...`) from the Google Analytics data stream into `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` in `.env.local` and your production environment. Analytics stays disabled when this variable is empty. Verve records page views and an `export_completed` event with export type, format, and guest/signed-in category; it does not send assignment content or account identifiers to Google Analytics.
+4. **Authentication → Sign-in method**
    - Enable **Email/Password**
    - Enable **Google** (optional, but the UI includes “Continue with Google”)
-4. **Authentication → Settings → Authorized domains**
+5. **Authentication → Settings → Authorized domains**
    - Keep `localhost`
    - After you deploy, add your Vercel domain (for example `your-app.vercel.app` and any custom domain)
-5. **Build → Firestore Database → Create database**
+6. **Build → Firestore Database → Create database**
    - Start in production mode, then publish the rules in [`firestore.rules`](./firestore.rules)
    - From this repo (with the [Firebase CLI](https://firebase.google.com/docs/cli) logged in):
 
@@ -107,6 +109,8 @@ The administrator dashboard is available at `/usage`. To enable it:
 
 The service-account key is a server secret: never use a `NEXT_PUBLIC_` prefix, commit the key, or share it. Only the configured UID can read analytics. The dashboard counts recorded exports and distinct signed-in accounts that exported; it does not query Firebase Authentication for the total number of registered accounts. Export events and guest export limits are written by the server using the Admin SDK, so `exportEvents`, `userExportStats`, `guestExportStats`, and `exportSurveyResponses` are denied to direct client reads and writes by [`firestore.rules`](./firestore.rules). Deploy the updated rules with `firebase deploy --only firestore:rules`.
 
+The public homepage shows only the total recorded export count. It is calculated server-side from the `exportEvents` collection and cached for one hour; account and guest counts remain restricted to `/usage`.
+
 Signed-out visitors can make one free export per browser cookie, shared between cover and document exports. Later exports require an account. The guest limit is intended to prevent repeat use in normal browsing; clearing cookies or using another browser may reset it. Guest exports are recorded without a Firebase account and are shown separately in the dashboard. These counts represent recorded export actions, not independently verified downloads: PDF and Word files are still generated in the browser.
 
 <!-- ## 3. Buy Me a Coffee (optional) -->
@@ -122,7 +126,11 @@ Next.js on Vercel needs no extra `vercel.json` for this app.
 5. Deploy.
 6. Copy the production URL into:
    - Firebase **Authorized domains**
-   - `NEXT_PUBLIC_SITE_URL` (optional, used as the public origin)
+   - `NEXT_PUBLIC_SITE_URL` (used for canonical links, Open Graph metadata, and the sitemap)
+
+### Search Console
+
+After deploying, add your site to [Google Search Console](https://search.google.com/search-console/), verify ownership using the HTML verification file in `public/`, and submit `https://your-production-domain/sitemap.xml`. The generated sitemap includes the public landing page and privacy policy; private editor and account pages are excluded from indexing.
 
 Preview deployments each get a unique hostname. Add those hostnames to Firebase authorized domains if you need Google sign-in on preview URLs, or test email/password there.
 

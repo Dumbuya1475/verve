@@ -1,8 +1,37 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BottomNav } from '@/components/BottomNav';
+import { PublicExportCount } from '@/components/PublicExportCount';
 import { Icon } from '@/components/Icon';
 import { COVER_LOGO_PATH } from '@/lib/cover/types';
-import { BUY_ME_A_COFFEE_URL, GITHUB_REPO_URL, hasBuyMeACoffee } from '@/lib/site';
+import {
+  BUY_ME_A_COFFEE_URL,
+  GITHUB_REPO_URL,
+  SITE_NAME,
+  SITE_TAGLINE,
+  SITE_URL,
+  hasBuyMeACoffee,
+} from '@/lib/site';
+
+export const metadata: Metadata = {
+  title: 'Free Assignment Cover Page Maker in Sierra Leone',
+  description:
+    'Create individual or group assignment cover pages for university in Sierra Leone. Preview your cover, then export it as PDF or Word.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Free Assignment Cover Page Maker in Sierra Leone',
+    description:
+      'Create individual or group assignment cover pages for university in Sierra Leone. Preview your cover, then export it as PDF or Word.',
+    url: SITE_URL,
+  },
+  twitter: {
+    title: 'Free Assignment Cover Page Maker in Sierra Leone',
+    description:
+      'Create individual or group assignment cover pages for university in Sierra Leone. Preview your cover, then export it as PDF or Word.',
+  },
+};
 
 const TICKER_ITEMS = [
   'Verve',
@@ -16,8 +45,33 @@ const TICKER_ITEMS = [
 ];
 
 export default function LandingPage() {
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: SITE_NAME,
+    url: SITE_URL.toString(),
+    description: SITE_TAGLINE,
+    applicationCategory: 'EducationalApplication',
+    operatingSystem: 'Any',
+    areaServed: {
+      '@type': 'Country',
+      name: 'Sierra Leone',
+    },
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'SLE',
+    },
+  };
+
   return (
     <div className="flex min-h-screen min-w-0 flex-col overflow-x-hidden bg-background pb-24 font-sans md:pb-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replace(/</g, '\\u003c'),
+        }}
+      />
       <section className="flex min-h-dvh w-full flex-col bg-surface-strong">
           <header className="flex items-center justify-between gap-4 px-5 py-5 sm:px-8 lg:px-12">
             <Link href="/" className="flex shrink-0 items-center rounded-full focus-ring">
@@ -63,13 +117,14 @@ export default function LandingPage() {
               </p>
 
               <h1 className="mb-5 text-4xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-5xl lg:text-7xl">
-                Cover pages your
-                <span className="block text-secondary">lecturer will</span>
-                accept
+                Assignment cover pages
+                <span className="block text-secondary">made for students</span>
+                in Sierra Leone
               </h1>
 
               <p className="mb-8 max-w-md text-base leading-relaxed text-secondary sm:text-lg">
-                Fill in a cover, write the assignment, or both. Export PDF or Word after signing in.
+                Create an individual or group assignment cover, preview it, and export as PDF or
+                Word. Start with one free guest export.
               </p>
 
               <div className="flex w-full flex-col gap-3 sm:flex-row">
@@ -160,6 +215,8 @@ export default function LandingPage() {
       </section>
 
       <div className="mx-auto w-full max-w-7xl flex-grow px-4 sm:px-6 lg:px-8">
+        <PublicExportCount />
+
         <section className="px-2 py-14 sm:py-16">
           <p className="mb-6 text-center text-xs font-bold uppercase tracking-widest text-secondary">
             Trusted by students at

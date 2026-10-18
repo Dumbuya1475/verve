@@ -1,4 +1,13 @@
+import type { Metadata } from 'next';
 import { Icon } from '@/components/Icon';
+
+export const metadata: Metadata = {
+  title: 'Offline',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function OfflinePage() {
   return (

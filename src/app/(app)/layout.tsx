@@ -1,6 +1,14 @@
+import type { Metadata } from 'next';
 import { TopNav } from '@/components/TopNav';
 import { BottomNav } from '@/components/BottomNav';
 import { AuthGate } from '@/components/AuthGate';
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function AppLayout({
   children,
