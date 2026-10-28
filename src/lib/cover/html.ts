@@ -23,6 +23,7 @@ export const COVER_PAGE_CSS = `
   line-height: 1.5;
   overflow: hidden;
 }
+.verve-cover.vc-compact-group { padding-top: 0.5in; padding-bottom: 0.5in; }
 .verve-cover .vc-body { flex: 0 1 auto; }
 .verve-cover .vc-center { text-align: center; }
 .verve-cover .vc-logo {
@@ -234,6 +235,7 @@ export function buildCoverInnerHtml({
   const courseLine = `${formData.courseCode}: ${formData.courseTitle}`;
   const lecturerLabel = type === 'Group' ? 'Lecturer' : 'Lecturer/Examiner';
   const faculty = formData.faculty.trim();
+  const compactGroupCover = type === 'Group' && groupMembers.length >= 6;
 
   const individualRows =
     type === 'Individual'
@@ -285,7 +287,7 @@ export function buildCoverInnerHtml({
            <tbody>${groupRows}</tbody>
          </table>`;
 
-  return `<div class="verve-cover">
+  return `<div class="verve-cover${compactGroupCover ? ' vc-compact-group' : ''}">
     <div class="vc-body">
       <img class="vc-logo" src="${escapeHtml(logoSrc)}" alt="Limkokwing University of Creative Technology Sierra Leone logo" />
       ${faculty ? `<p class="vc-faculty vc-center">${escapeHtml(faculty)}</p>` : ''}

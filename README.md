@@ -91,7 +91,7 @@ Without Firebase keys the landing page and cover editor still load. Sign-in and 
      firebase deploy --only firestore:rules
      ```
 
-   Feedback is written to a `feedback` collection. The rules allow **create only** (no public reads).
+   The same rules also allow signed-in users to read and update only their own `coverDrafts/{uid}` document for cross-device cover sync. After changing Firestore rules, deploy them to the same Firebase project configured by `NEXT_PUBLIC_FIREBASE_PROJECT_ID`; otherwise cover sync can fail with a permissions error. Feedback is written to a `feedback` collection. The rules allow **create only** (no public reads).
 
 Do not put a Firebase **service account** JSON in client env vars. The service-account key used for export analytics is kept server-side and is never shipped to the browser.
 

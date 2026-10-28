@@ -59,5 +59,48 @@ service cloud.firestore {
         && request.resource.data.updatedAt is number;
       allow delete: if false;
     }
+
+    match /coverDrafts/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly([
+          'type', 'formData', 'groupMembers', 'updatedAt'
+        ])
+        && request.resource.data.type in ['Individual', 'Group']
+        && request.resource.data.formData is map
+        && request.resource.data.formData.keys().hasOnly([
+          'university', 'faculty', 'courseCode', 'courseTitle', 'assignmentTitle',
+          'issueDate', 'dueDate', 'lecturer', 'className', 'semester', 'studentName', 'studentId'
+        ])
+        && request.resource.data.formData.university is string
+        && request.resource.data.formData.university.size() <= 300
+        && request.resource.data.formData.faculty is string
+        && request.resource.data.formData.faculty.size() <= 300
+        && request.resource.data.formData.courseCode is string
+        && request.resource.data.formData.courseCode.size() <= 100
+        && request.resource.data.formData.courseTitle is string
+        && request.resource.data.formData.courseTitle.size() <= 300
+        && request.resource.data.formData.assignmentTitle is string
+        && request.resource.data.formData.assignmentTitle.size() <= 300
+        && request.resource.data.formData.issueDate is string
+        && request.resource.data.formData.issueDate.size() <= 100
+        && request.resource.data.formData.dueDate is string
+        && request.resource.data.formData.dueDate.size() <= 100
+        && request.resource.data.formData.lecturer is string
+        && request.resource.data.formData.lecturer.size() <= 300
+        && request.resource.data.formData.className is string
+        && request.resource.data.formData.className.size() <= 100
+        && request.resource.data.formData.semester is string
+        && request.resource.data.formData.semester.size() <= 100
+        && request.resource.data.formData.studentName is string
+        && request.resource.data.formData.studentName.size() <= 300
+        && request.resource.data.formData.studentId is string
+        && request.resource.data.formData.studentId.size() <= 100
+        && request.resource.data.groupMembers is list
+        && request.resource.data.groupMembers.size() <= 100
+        && request.resource.data.updatedAt is number;
+      allow delete: if false;
+    }
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
 import { CoverPreview } from "@/components/CoverPreview";
@@ -8,6 +8,7 @@ import { ExportShareDialog } from "@/components/ExportShareDialog";
 import { Icon } from "@/components/Icon";
 import { trackExportCompleted } from "@/lib/firebase/analytics";
 import { exportCoverPdf, exportCoverWord } from "@/lib/cover/export";
+import { pullRemoteCoverDraft, pushRemoteCoverDraft } from "@/lib/cover/sync";
 import { warmExportModules } from "@/lib/cover/warmExports";
 import {
   cancelGuestExport,
@@ -31,12 +32,38 @@ const DEFAULT_FORM: CoverFormData = {
   studentId: "90500638",
 };
 
+const FACULTY_OPTIONS = [
+  "Department of Architecture and Design Innovation",
+  "Department of Business Management & Globalization",
+  "Department of Communication, Media, Broadcasting and Public Relations",
+  "Department of Information and Communication Technology",
+];
+
 const inputClass =
   "w-full min-w-0 bg-surface border border-outline-variant/30 rounded-control px-4 py-2.5 focus-ring focus:bg-surface-strong transition-all text-base";
+const COVER_DRAFT_UPDATED_AT_KEY = "coverDraftUpdatedAt";
+
+function getCoverSyncErrorMessage(error: unknown): string {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error.code === "permission-denied" || error.code === "firestore/permission-denied")
+  ) {
+    return "Firebase denied cloud sync. Deploy firestore.rules to the Firebase project configured for this app, then try again.";
+  }
+
+  return "Could not sync your cover.";
+}
 
 export default function CoverPage() {
   const { user, loading: authLoading } = useAuth();
   const [isClient, setIsClient] = useState(false);
+  const [localDraftLoaded, setLocalDraftLoaded] = useState(false);
+  const [localDraftUpdatedAt, setLocalDraftUpdatedAt] = useState(0);
+  const [syncStatus, setSyncStatus] = useState<"local" | "syncing" | "synced" | "error">("local");
+  const [syncErrorMessage, setSyncErrorMessage] = useState<string | null>(null);
+  const [syncRetry, setSyncRetry] = useState(0);
   const [mobileTab, setMobileTab] = useState<"editor" | "preview">("editor");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [type, setType] = useState<CoverType>("Individual");
@@ -48,6 +75,9 @@ export default function CoverPage() {
   const [exportError, setExportError] = useState<string | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [showSurvey, setShowSurvey] = useState(false);
+  const cloudReadyUserId = useRef<string | null>(null);
+  const hasLocalDraftRef = useRef(false);
+  const currentDraftRef = useRef({ type, formData, groupMembers });
 
   useEffect(() => {
     setIsClient(true);
@@ -56,6 +86,11 @@ export default function CoverPage() {
       const savedType = localStorage.getItem("coverType");
       const savedFormData = localStorage.getItem("coverFormData");
       const savedMembers = localStorage.getItem("coverGroupMembers");
+      const savedUpdatedAt = Number(localStorage.getItem(COVER_DRAFT_UPDATED_AT_KEY));
+      hasLocalDraftRef.current = Boolean(savedType || savedFormData || savedMembers);
+      setLocalDraftUpdatedAt(
+        Number.isFinite(savedUpdatedAt) && savedUpdatedAt > 0 ? savedUpdatedAt : 0,
+      );
       if (savedType === "Individual" || savedType === "Group")
         setType(savedType);
       if (savedFormData)
@@ -66,6 +101,8 @@ export default function CoverPage() {
       }
     } catch {
       // Keep defaults if saved data is unreadable.
+    } finally {
+      setLocalDraftLoaded(true);
     }
   }, []);
 
@@ -73,7 +110,7 @@ export default function CoverPage() {
     if (!user?.uid) return;
     let cancelled = false;
 
-    void fetch('/api/exports/survey', { cache: 'no-store' })
+    void fetch("/api/exports/survey", { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) return;
         const result = (await response.json()) as { eligible?: boolean };
@@ -83,7 +120,7 @@ export default function CoverPage() {
         }
       })
       .catch((error: unknown) => {
-        console.error('Could not check export survey eligibility', error);
+        console.error("Could not check export survey eligibility", error);
       });
 
     return () => {
@@ -96,13 +133,107 @@ export default function CoverPage() {
     localStorage.setItem("coverType", type);
     localStorage.setItem("coverFormData", JSON.stringify(formData));
     localStorage.setItem("coverGroupMembers", JSON.stringify(groupMembers));
+    localStorage.setItem(COVER_DRAFT_UPDATED_AT_KEY, String(Date.now()));
   }, [type, formData, groupMembers, isClient]);
+
+  useEffect(() => {
+    currentDraftRef.current = { type, formData, groupMembers };
+  }, [type, formData, groupMembers]);
+
+  useEffect(() => {
+    if (!localDraftLoaded || authLoading) return;
+    if (!user) {
+      cloudReadyUserId.current = null;
+      return;
+    }
+
+    const userId = user.uid;
+    let cancelled = false;
+    cloudReadyUserId.current = null;
+    setSyncStatus("syncing");
+
+    async function syncOnLoad() {
+      try {
+        const remoteDraft = await pullRemoteCoverDraft(userId);
+        if (cancelled) return;
+
+        const latestLocalUpdatedAt = Number(
+          localStorage.getItem(COVER_DRAFT_UPDATED_AT_KEY),
+        );
+        const localUpdatedAt =
+          Number.isFinite(latestLocalUpdatedAt) && latestLocalUpdatedAt > 0
+            ? latestLocalUpdatedAt
+            : localDraftUpdatedAt;
+        const currentLocalDraft = currentDraftRef.current;
+        const localDraftExists = hasLocalDraftRef.current;
+
+        if (remoteDraft && (!localDraftExists || remoteDraft.updatedAt >= localUpdatedAt)) {
+          setType(remoteDraft.type);
+          setFormData(remoteDraft.formData);
+          setGroupMembers(remoteDraft.groupMembers);
+        } else if (localDraftExists) {
+          await pushRemoteCoverDraft(userId, {
+            ...currentLocalDraft,
+            updatedAt: localUpdatedAt || Date.now(),
+          });
+        }
+
+        if (!cancelled) {
+          cloudReadyUserId.current = userId;
+          setSyncStatus("synced");
+        }
+      } catch (error) {
+        console.error("Could not sync cover draft", error);
+        if (!cancelled) {
+          setSyncErrorMessage(getCoverSyncErrorMessage(error));
+          setSyncStatus("error");
+        }
+      }
+    }
+
+    void syncOnLoad();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    authLoading,
+    localDraftLoaded,
+    localDraftUpdatedAt,
+    syncRetry,
+    user?.uid,
+  ]);
+
+  useEffect(() => {
+    if (!user || syncStatus !== "synced" || cloudReadyUserId.current !== user.uid) return;
+
+    const handle = window.setTimeout(async () => {
+      setSyncErrorMessage(null);
+      setSyncStatus("syncing");
+      try {
+        await pushRemoteCoverDraft(user.uid, {
+          type,
+          formData,
+          groupMembers,
+          updatedAt: Date.now(),
+        });
+        cloudReadyUserId.current = user.uid;
+        setSyncStatus("synced");
+      } catch (error) {
+        console.error("Could not save cover draft to the cloud", error);
+        setSyncErrorMessage(getCoverSyncErrorMessage(error));
+        setSyncStatus("error");
+      }
+    }, 800);
+
+    return () => window.clearTimeout(handle);
+  }, [formData, groupMembers, syncStatus, type, user]);
 
   const handleMemberChange = (
     index: number,
     field: "name" | "id",
     value: string,
   ) => {
+    hasLocalDraftRef.current = true;
     setGroupMembers((current) =>
       current.map((member, memberIndex) =>
         memberIndex === index ? { ...member, [field]: value } : member,
@@ -111,18 +242,28 @@ export default function CoverPage() {
   };
 
   const addMember = () => {
+    hasLocalDraftRef.current = true;
     setGroupMembers((current) => [...current, { name: "", id: "" }]);
   };
 
   const removeMember = (index: number) => {
+    hasLocalDraftRef.current = true;
     setGroupMembers((current) =>
       current.length <= 1 ? current : current.filter((_, i) => i !== index),
     );
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    hasLocalDraftRef.current = true;
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const changeType = (nextType: CoverType) => {
+    hasLocalDraftRef.current = true;
+    setType(nextType);
   };
 
   const runExport = async (kind: "pdf" | "word") => {
@@ -130,7 +271,9 @@ export default function CoverPage() {
     setExportError(null);
 
     if (authLoading) {
-      setExportError("Checking your sign-in status. Please try again in a moment.");
+      setExportError(
+        "Checking your sign-in status. Please try again in a moment.",
+      );
       return;
     }
 
@@ -141,7 +284,9 @@ export default function CoverPage() {
         guestReservationId = await reserveGuestExport("cover", kind);
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Could not verify your free export.";
+          error instanceof Error
+            ? error.message
+            : "Could not verify your free export.";
         setExportError(message);
         setExporting(null);
         return;
@@ -160,7 +305,10 @@ export default function CoverPage() {
         try {
           await cancelGuestExport(guestReservationId);
         } catch (cancelError) {
-          console.error("Could not release failed guest export reservation", cancelError);
+          console.error(
+            "Could not release failed guest export reservation",
+            cancelError,
+          );
         }
       }
       const offline = typeof navigator !== "undefined" && !navigator.onLine;
@@ -197,12 +345,13 @@ export default function CoverPage() {
           body: JSON.stringify({ kind: "cover", format: kind }),
         });
         if (!response.ok) {
-          const payload = (await response.json().catch(() => null)) as
-            | { error?: string }
-            | null;
+          const payload = (await response.json().catch(() => null)) as {
+            error?: string;
+          } | null;
           console.error("Export tracking failed", response.status);
           setExportError(
-            payload?.error ?? "Your file was created, but its usage could not be recorded.",
+            payload?.error ??
+              "Your file was created, but its usage could not be recorded.",
           );
         } else {
           const result = (await response.json()) as { showSurvey?: boolean };
@@ -275,10 +424,37 @@ export default function CoverPage() {
             Fill in your assignment details, then export a PDF or Word cover
             that matches the faculty template.
           </p>
+          {user ? (
+            <div className="mt-2 text-sm text-secondary" role="status" aria-live="polite">
+              {syncStatus === "syncing"
+                ? "Syncing your cover to your account…"
+                : syncStatus === "synced"
+                  ? "Your cover is synced to your account."
+                  : syncStatus === "error"
+                    ? (
+                        <>
+                          {syncErrorMessage ?? "Could not sync your cover."} It is still saved on this device.{" "}
+                          <button
+                            type="button"
+                            className="font-medium text-primary underline focus-ring"
+                            onClick={() => setSyncRetry((attempt) => attempt + 1)}
+                          >
+                            Try again
+                          </button>
+                        </>
+                      )
+                    : "Your cover is saved on this device."}
+            </div>
+          ) : isClient ? (
+            <p className="mt-2 text-sm text-secondary">
+              Sign in with the same account on each device to sync cover drafts. Guest drafts stay
+              on this device.
+            </p>
+          ) : null}
           {!user && isClient ? (
             <p className="mt-2 text-sm text-secondary">
-              Try one free export without an account. Create an account for more.
-              {" "}
+              Try one free export without an account. Create an account for
+              more.{" "}
               <Link
                 href="/signup?next=/cover"
                 className="font-medium text-primary focus-ring rounded-control"
@@ -351,7 +527,7 @@ export default function CoverPage() {
           <div className="bg-surface p-1 rounded-xl flex shadow-sm border border-outline-variant/30">
             <button
               type="button"
-              onClick={() => setType("Individual")}
+              onClick={() => changeType("Individual")}
               className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors focus-ring ${
                 type === "Individual"
                   ? "bg-surface-strong shadow-sm text-foreground"
@@ -362,7 +538,7 @@ export default function CoverPage() {
             </button>
             <button
               type="button"
-              onClick={() => setType("Group")}
+              onClick={() => changeType("Group")}
               className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors focus-ring ${
                 type === "Group"
                   ? "bg-surface-strong shadow-sm text-foreground"
@@ -384,14 +560,19 @@ export default function CoverPage() {
               >
                 Faculty
               </label>
-              <input
+              <select
                 id="faculty"
                 name="faculty"
                 className={inputClass}
-                type="text"
                 value={formData.faculty}
                 onChange={handleChange}
-              />
+              >
+                {FACULTY_OPTIONS.map((faculty) => (
+                  <option key={faculty} value={faculty}>
+                    {faculty}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
