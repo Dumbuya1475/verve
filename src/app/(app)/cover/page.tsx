@@ -48,7 +48,8 @@ function getCoverSyncErrorMessage(error: unknown): string {
     typeof error === "object" &&
     error !== null &&
     "code" in error &&
-    (error.code === "permission-denied" || error.code === "firestore/permission-denied")
+    (error.code === "permission-denied" ||
+      error.code === "firestore/permission-denied")
   ) {
     return "Firebase denied cloud sync. Deploy firestore.rules to the Firebase project configured for this app, then try again.";
   }
@@ -61,7 +62,9 @@ export default function CoverPage() {
   const [isClient, setIsClient] = useState(false);
   const [localDraftLoaded, setLocalDraftLoaded] = useState(false);
   const [localDraftUpdatedAt, setLocalDraftUpdatedAt] = useState(0);
-  const [syncStatus, setSyncStatus] = useState<"local" | "syncing" | "synced" | "error">("local");
+  const [syncStatus, setSyncStatus] = useState<
+    "local" | "syncing" | "synced" | "error"
+  >("local");
   const [syncErrorMessage, setSyncErrorMessage] = useState<string | null>(null);
   const [syncRetry, setSyncRetry] = useState(0);
   const [mobileTab, setMobileTab] = useState<"editor" | "preview">("editor");
@@ -86,10 +89,16 @@ export default function CoverPage() {
       const savedType = localStorage.getItem("coverType");
       const savedFormData = localStorage.getItem("coverFormData");
       const savedMembers = localStorage.getItem("coverGroupMembers");
-      const savedUpdatedAt = Number(localStorage.getItem(COVER_DRAFT_UPDATED_AT_KEY));
-      hasLocalDraftRef.current = Boolean(savedType || savedFormData || savedMembers);
+      const savedUpdatedAt = Number(
+        localStorage.getItem(COVER_DRAFT_UPDATED_AT_KEY),
+      );
+      hasLocalDraftRef.current = Boolean(
+        savedType || savedFormData || savedMembers,
+      );
       setLocalDraftUpdatedAt(
-        Number.isFinite(savedUpdatedAt) && savedUpdatedAt > 0 ? savedUpdatedAt : 0,
+        Number.isFinite(savedUpdatedAt) && savedUpdatedAt > 0
+          ? savedUpdatedAt
+          : 0,
       );
       if (savedType === "Individual" || savedType === "Group")
         setType(savedType);
@@ -167,7 +176,10 @@ export default function CoverPage() {
         const currentLocalDraft = currentDraftRef.current;
         const localDraftExists = hasLocalDraftRef.current;
 
-        if (remoteDraft && (!localDraftExists || remoteDraft.updatedAt >= localUpdatedAt)) {
+        if (
+          remoteDraft &&
+          (!localDraftExists || remoteDraft.updatedAt >= localUpdatedAt)
+        ) {
           setType(remoteDraft.type);
           setFormData(remoteDraft.formData);
           setGroupMembers(remoteDraft.groupMembers);
@@ -204,7 +216,12 @@ export default function CoverPage() {
   ]);
 
   useEffect(() => {
-    if (!user || syncStatus !== "synced" || cloudReadyUserId.current !== user.uid) return;
+    if (
+      !user ||
+      syncStatus !== "synced" ||
+      cloudReadyUserId.current !== user.uid
+    )
+      return;
 
     const handle = window.setTimeout(async () => {
       setSyncErrorMessage(null);
@@ -425,30 +442,35 @@ export default function CoverPage() {
             that matches the faculty template.
           </p>
           {user ? (
-            <div className="mt-2 text-sm text-secondary" role="status" aria-live="polite">
-              {syncStatus === "syncing"
-                ? "Syncing your cover to your account…"
-                : syncStatus === "synced"
-                  ? "Your cover is synced to your account."
-                  : syncStatus === "error"
-                    ? (
-                        <>
-                          {syncErrorMessage ?? "Could not sync your cover."} It is still saved on this device.{" "}
-                          <button
-                            type="button"
-                            className="font-medium text-primary underline focus-ring"
-                            onClick={() => setSyncRetry((attempt) => attempt + 1)}
-                          >
-                            Try again
-                          </button>
-                        </>
-                      )
-                    : "Your cover is saved on this device."}
+            <div
+              className="mt-2 text-sm text-secondary"
+              role="status"
+              aria-live="polite"
+            >
+              {syncStatus === "syncing" ? (
+                "Syncing your cover to your account…"
+              ) : syncStatus === "synced" ? (
+                "Your cover is synced to your account."
+              ) : syncStatus === "error" ? (
+                <>
+                  {syncErrorMessage ?? "Could not sync your cover."} It is still
+                  saved on this device.{" "}
+                  <button
+                    type="button"
+                    className="font-medium text-primary underline focus-ring"
+                    onClick={() => setSyncRetry((attempt) => attempt + 1)}
+                  >
+                    Try again
+                  </button>
+                </>
+              ) : (
+                "Your cover is saved on this device."
+              )}
             </div>
           ) : isClient ? (
             <p className="mt-2 text-sm text-secondary">
-              Sign in with the same account on each device to sync cover drafts. Guest drafts stay
-              on this device.
+              Sign in with the same account on each device to sync cover drafts.
+              Guest drafts stay on this device.
             </p>
           ) : null}
           {!user && isClient ? (
