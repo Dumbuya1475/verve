@@ -7,12 +7,14 @@ import {
   getFirebaseAdminFirestore,
   verifyFirebaseSession,
 } from '@/lib/firebase/admin';
+import { exportMetadataSchema } from '@/lib/exports/metadata';
 
 export const runtime = 'nodejs';
 
 const exportBodySchema = z.object({
   kind: z.enum(['cover', 'document']),
   format: z.enum(['pdf', 'docx', 'word']),
+  metadata: exportMetadataSchema.optional(),
 });
 
 async function getSessionUser() {
@@ -79,6 +81,7 @@ export async function POST(request: Request) {
         uid: sessionUser.uid,
         kind: parsed.data.kind,
         format: parsed.data.format,
+        ...(parsed.data.metadata ?? {}),
         createdAt,
       });
       transaction.set(
@@ -141,11 +144,22 @@ export async function GET() {
     const firestore = getFirebaseAdminFirestore();
     const snapshot = await firestore
       .collection('exportEvents')
-      .select('uid', 'guestId', 'kind')
+      .select('uid', 'guestId', 'kind', 'semester', 'faculty', 'className', 'studentName')
       .get();
     const usersWhoExported = new Set<string>();
     const exportsByKind: Record<string, number> = {};
+    const exportsByField = {
+      semester: {} as Record<string, number>,
+      faculty: {} as Record<string, number>,
+      className: {} as Record<string, number>,
+      studentName: {} as Record<string, number>,
+    };
     let guestExports = 0;
+
+    function countField(field: keyof typeof exportsByField, value: unknown) {
+      const label = typeof value === 'string' && value.trim() ? value.trim() : 'Unknown';
+      exportsByField[field][label] = (exportsByField[field][label] ?? 0) + 1;
+    }
 
     for (const document of snapshot.docs) {
       const uid: unknown = document.get('uid');
@@ -156,6 +170,10 @@ export async function GET() {
       if (typeof kind === 'string' && kind) {
         exportsByKind[kind] = (exportsByKind[kind] ?? 0) + 1;
       }
+      countField('semester', document.get('semester'));
+      countField('faculty', document.get('faculty'));
+      countField('className', document.get('className'));
+      countField('studentName', document.get('studentName'));
     }
 
     return NextResponse.json(
@@ -165,6 +183,7 @@ export async function GET() {
         usersWhoExported: usersWhoExported.size,
         guestExports,
         exportsByKind,
+        exportsByField,
         generatedAt: new Date().toISOString(),
       },
       { headers: { 'Cache-Control': 'no-store' } },

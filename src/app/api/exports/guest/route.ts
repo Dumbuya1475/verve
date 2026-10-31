@@ -8,6 +8,7 @@ import {
   getFirebaseAdminSigningKey,
   verifyFirebaseSession,
 } from '@/lib/firebase/admin';
+import { exportMetadataSchema } from '@/lib/exports/metadata';
 
 export const runtime = 'nodejs';
 
@@ -21,6 +22,7 @@ const guestExportActionSchema = z.discriminatedUnion('action', [
     reservationId: z.string().uuid(),
     kind: z.enum(['cover', 'document']),
     format: z.enum(['pdf', 'docx', 'word']),
+    metadata: exportMetadataSchema.optional(),
   }),
   z.object({
     action: z.literal('complete'),
@@ -166,6 +168,7 @@ export async function POST(request: Request) {
             reservationId: reservation.reservationId,
             reservationKind: reservation.kind,
             reservationFormat: reservation.format,
+            reservationMetadata: reservation.metadata ?? null,
             reservedAt: now,
           },
           { merge: true },
@@ -212,6 +215,7 @@ export async function POST(request: Request) {
           guestId: identity.id,
           kind: data.reservationKind,
           format: data.reservationFormat,
+          ...(data.reservationMetadata ?? {}),
           createdAt,
         });
         transaction.set(
@@ -223,6 +227,7 @@ export async function POST(request: Request) {
             reservationId: null,
             reservationKind: null,
             reservationFormat: null,
+            reservationMetadata: null,
             reservedAt: null,
           },
           { merge: true },
@@ -238,6 +243,7 @@ export async function POST(request: Request) {
           reservationId: null,
           reservationKind: null,
           reservationFormat: null,
+          reservationMetadata: null,
           reservedAt: null,
         },
         { merge: true },

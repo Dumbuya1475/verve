@@ -298,7 +298,12 @@ export default function CoverPage() {
     let guestReservationId: string | null = null;
     if (!user) {
       try {
-        guestReservationId = await reserveGuestExport("cover", kind);
+        guestReservationId = await reserveGuestExport("cover", kind, {
+          semester: formData.semester,
+          faculty: formData.faculty,
+          className: formData.className,
+          studentName: formData.studentName,
+        });
       } catch (error) {
         const message =
           error instanceof Error
@@ -359,7 +364,16 @@ export default function CoverPage() {
         const response = await fetch("/api/exports/record", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ kind: "cover", format: kind }),
+          body: JSON.stringify({
+            kind: "cover",
+            format: kind,
+            metadata: {
+              semester: formData.semester,
+              faculty: formData.faculty,
+              className: formData.className,
+              studentName: formData.studentName,
+            },
+          }),
         });
         if (!response.ok) {
           const payload = (await response.json().catch(() => null)) as {
