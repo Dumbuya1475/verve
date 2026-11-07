@@ -17,6 +17,39 @@ const EMPTY_STATS = {
   generatedAt: null as string | null,
 };
 
+function AnalyticsBars({
+  entries,
+  emptyMessage,
+}: {
+  entries: [string, number][];
+  emptyMessage: string;
+}) {
+  if (entries.length === 0) {
+    return <p className="mt-4 text-sm text-secondary">{emptyMessage}</p>;
+  }
+
+  const maximum = Math.max(...entries.map(([, count]) => count), 1);
+
+  return (
+    <div className="mt-4 space-y-4" role="list">
+      {entries.map(([label, count]) => (
+        <div key={label} role="listitem">
+          <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+            <span className="min-w-0 truncate font-medium text-foreground" title={label}>{label}</span>
+            <span className="shrink-0 font-semibold text-primary">{count}</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-secondary-container" aria-hidden="true">
+            <div
+              className="h-full rounded-full bg-primary transition-[width]"
+              style={{ width: `${Math.max(4, (count / maximum) * 100)}%` }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function UsagePage() {
   const [stats, setStats] = useState(EMPTY_STATS);
   const [loading, setLoading] = useState(true);
@@ -86,8 +119,8 @@ export default function UsagePage() {
     };
   }, []);
 
-  const kindEntries = Object.entries(stats.exportsByKind).sort(([left], [right]) => left.localeCompare(right));
-  const formatEntries = Object.entries(stats.exportsByFormat).sort(([left], [right]) => left.localeCompare(right));
+  const kindEntries = Object.entries(stats.exportsByKind).sort(([, left], [, right]) => right - left);
+  const formatEntries = Object.entries(stats.exportsByFormat).sort(([, left], [, right]) => right - left);
   const fieldLabels: Record<string, string> = {
     semester: 'Semester',
     faculty: 'Faculty',
@@ -149,14 +182,7 @@ export default function UsagePage() {
         ) : kindEntries.length === 0 ? (
           <p className="mt-4 text-sm text-secondary">No exports have been recorded yet.</p>
         ) : (
-          <ul className="mt-4 space-y-3">
-            {kindEntries.map(([kind, count]) => (
-              <li key={kind} className="flex items-center justify-between gap-4 rounded-control bg-surface p-3">
-                <span className="text-sm font-medium capitalize text-foreground">{kind}</span>
-                <span className="text-sm font-semibold text-primary">{count}</span>
-              </li>
-            ))}
-          </ul>
+          <AnalyticsBars entries={kindEntries} emptyMessage="No exports have been recorded yet." />
         )}
       </div>
 
@@ -164,40 +190,22 @@ export default function UsagePage() {
         <h2 className="text-xl font-semibold text-foreground">By format</h2>
         {loading ? (
           <p className="mt-4 text-sm text-secondary">Loading format counts…</p>
-        ) : formatEntries.length === 0 ? (
-          <p className="mt-4 text-sm text-secondary">No formats have been recorded yet.</p>
         ) : (
-          <ul className="mt-4 space-y-3">
-            {formatEntries.map(([format, count]) => (
-              <li key={format} className="flex items-center justify-between gap-4 rounded-control bg-surface p-3">
-                <span className="text-sm font-medium capitalize text-foreground">{format}</span>
-                <span className="text-sm font-semibold text-primary">{count}</span>
-              </li>
-            ))}
-          </ul>
+          <AnalyticsBars entries={formatEntries} emptyMessage="No formats have been recorded yet." />
         )}
         </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         {Object.entries(fieldLabels).map(([field, label]) => {
           const entries = Object.entries(stats.exportsByField[field] ?? {})
-            .sort(([left], [right]) => left.localeCompare(right));
+            .sort(([, left], [, right]) => right - left);
           return (
             <section className="rounded-container bg-surface-strong p-5 shadow-soft" key={field}>
               <h2 className="text-xl font-semibold text-foreground">By {label.toLowerCase()}</h2>
               {loading ? (
                 <p className="mt-4 text-sm text-secondary">Loading counts…</p>
-              ) : entries.length === 0 ? (
-                <p className="mt-4 text-sm text-secondary">No exports have been recorded yet.</p>
               ) : (
-                <ul className="mt-4 max-h-64 space-y-3 overflow-y-auto">
-                  {entries.map(([value, count]) => (
-                    <li className="flex items-center justify-between gap-4 rounded-control bg-surface p-3" key={value}>
-                      <span className="min-w-0 truncate text-sm font-medium text-foreground" title={value}>{value}</span>
-                      <span className="shrink-0 text-sm font-semibold text-primary">{count}</span>
-                    </li>
-                  ))}
-                </ul>
+                <AnalyticsBars entries={entries} emptyMessage="No exports have been recorded yet." />
               )}
             </section>
           );

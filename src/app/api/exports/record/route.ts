@@ -159,17 +159,23 @@ export async function GET() {
     const usersWhoExported = new Set<string>();
     const exportsByKind: Record<string, number> = {};
     const exportsByFormat: Record<string, number> = {};
-    const exportsByField = {
-      semester: {} as Record<string, number>,
-      faculty: {} as Record<string, number>,
-      className: {} as Record<string, number>,
-      studentName: {} as Record<string, number>,
+    const fieldCounts = {
+      semester: new Map<string, { label: string; count: number }>(),
+      faculty: new Map<string, { label: string; count: number }>(),
+      className: new Map<string, { label: string; count: number }>(),
+      studentName: new Map<string, { label: string; count: number }>(),
     };
     let guestExports = 0;
 
-    function countField(field: keyof typeof exportsByField, value: unknown) {
+    function countField(field: keyof typeof fieldCounts, value: unknown) {
       const label = typeof value === 'string' && value.trim() ? value.trim() : 'Unknown';
-      exportsByField[field][label] = (exportsByField[field][label] ?? 0) + 1;
+      const key = label.replace(/\s+/g, ' ').toLowerCase();
+      const current = fieldCounts[field].get(key);
+      if (current) {
+        current.count += 1;
+      } else {
+        fieldCounts[field].set(key, { label: label.replace(/\s+/g, ' '), count: 1 });
+      }
     }
 
     for (const document of snapshot.docs) {
@@ -196,6 +202,13 @@ export async function GET() {
       countField('className', document.get('className'));
       countField('studentName', document.get('studentName'));
     }
+
+    const exportsByField = Object.fromEntries(
+      Object.entries(fieldCounts).map(([field, counts]) => [
+        field,
+        Object.fromEntries([...counts.values()].map(({ label, count }) => [label, count])),
+      ]),
+    );
 
     return NextResponse.json(
       {
