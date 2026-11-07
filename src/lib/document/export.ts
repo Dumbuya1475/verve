@@ -17,6 +17,7 @@ import {
   assignmentFilename,
   type AssignmentDraft,
 } from './types';
+import { exportFilename } from '@/lib/exports/filename';
 
 const FONT = 'Tahoma';
 const SIZE_BODY = 24;
@@ -181,7 +182,7 @@ async function addCanvasPages(pdf: PdfDoc, canvas: HTMLCanvasElement, startOnNew
   }
 }
 
-export async function exportAssignmentPdf(draft: AssignmentDraft): Promise<void> {
+export async function exportAssignmentPdf(draft: AssignmentDraft, filename?: string): Promise<void> {
   const cover = draft.includeCover ? readCoverDraft() : null;
   if (draft.includeCover && !cover) {
     throw new Error('Turn off “Add cover as page 1”, or fill in a cover first.');
@@ -226,10 +227,10 @@ export async function exportAssignmentPdf(draft: AssignmentDraft): Promise<void>
     iframe.remove();
   }
 
-  pdf.save(assignmentFilename(draft, 'pdf'));
+  pdf.save(exportFilename(filename, assignmentFilename(draft, 'pdf').replace(/\.pdf$/i, ''), 'pdf'));
 }
 
-export async function exportAssignmentWord(draft: AssignmentDraft): Promise<void> {
+export async function exportAssignmentWord(draft: AssignmentDraft, filename?: string): Promise<void> {
   const cover = draft.includeCover ? readCoverDraft() : null;
   if (draft.includeCover && !cover) {
     throw new Error('Turn off “Add cover as page 1”, or fill in a cover first.');
@@ -262,5 +263,8 @@ export async function exportAssignmentWord(draft: AssignmentDraft): Promise<void
   });
 
   const blob = await Packer.toBlob(doc);
-  await downloadBlob(blob, assignmentFilename(draft, 'docx'));
+  await downloadBlob(
+    blob,
+    exportFilename(filename, assignmentFilename(draft, 'docx').replace(/\.docx$/i, ''), 'docx'),
+  );
 }

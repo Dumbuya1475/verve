@@ -37,6 +37,9 @@ export default function DocumentPage() {
   const [draft, setDraft] = useState<AssignmentDraft>(emptyAssignment);
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [exporting, setExporting] = useState<'pdf' | 'word' | null>(null);
+  const [filename, setFilename] = useState('');
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'pdf' | 'word'>('pdf');
   const [exportError, setExportError] = useState<string | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [showSurvey, setShowSurvey] = useState(false);
@@ -162,9 +165,9 @@ export default function DocumentPage() {
 
     try {
       if (kind === 'pdf') {
-        await exportAssignmentPdf(draft);
+        await exportAssignmentPdf(draft, filename);
       } else {
-        await exportAssignmentWord(draft);
+        await exportAssignmentWord(draft, filename);
       }
     } catch (error) {
       console.error(error);
@@ -232,6 +235,7 @@ export default function DocumentPage() {
       }
     }
     setExporting(null);
+    setExportMenuOpen(false);
     setShowSurvey(shouldShowSurvey);
     setShareDialogOpen(true);
   };
@@ -246,7 +250,7 @@ export default function DocumentPage() {
           : 'Saved on this device';
 
   const exportButtons = (
-    <div className="flex flex-wrap items-center justify-end gap-2">
+    <div className="relative flex flex-wrap items-center justify-end gap-2">
       <button
         type="button"
         onClick={() => {
@@ -260,22 +264,48 @@ export default function DocumentPage() {
       </button>
       <button
         type="button"
-        onClick={() => runExport('pdf')}
+        onClick={() => setExportMenuOpen((open) => !open)}
         disabled={exporting !== null}
-        className="bg-primary text-primary-foreground px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-soft disabled:opacity-60 focus-ring"
+        className="bg-primary text-primary-foreground px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-soft disabled:opacity-60 focus-ring"
       >
-        <Icon name="picture_as_pdf" className="text-[18px]" />
-        {exporting === 'pdf' ? 'Saving…' : 'PDF'}
+        <Icon name="download" className="text-[18px]" />
+        Export as
       </button>
-      <button
-        type="button"
-        onClick={() => runExport('word')}
-        disabled={exporting !== null}
-        className="bg-surface-strong text-foreground border border-outline-variant/30 px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:bg-surface active:scale-95 transition-all shadow-soft disabled:opacity-60 focus-ring"
-      >
-        <Icon name="description" className="text-[18px]" />
-        {exporting === 'word' ? 'Saving…' : 'Word'}
-      </button>
+      {exportMenuOpen ? (
+        <div className="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-container bg-surface-strong p-4 shadow-soft">
+          <label className="block text-xs font-semibold uppercase tracking-wide text-secondary" htmlFor="assignment-export-format">
+            Export as
+          </label>
+          <select
+            id="assignment-export-format"
+            className={`${inputClass} mt-2`}
+            value={exportFormat}
+            onChange={(event) => setExportFormat(event.target.value as 'pdf' | 'word')}
+          >
+            <option value="pdf">PDF</option>
+            <option value="word">Word</option>
+          </select>
+          <label className="mt-3 block text-xs font-semibold uppercase tracking-wide text-secondary" htmlFor="assignment-export-filename">
+            File name
+          </label>
+          <input
+            id="assignment-export-filename"
+            className={`${inputClass} mt-2`}
+            type="text"
+            placeholder="Optional custom name"
+            value={filename}
+            onChange={(event) => setFilename(event.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => runExport(exportFormat)}
+            disabled={exporting !== null}
+            className="mt-3 w-full rounded-control bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-soft hover:opacity-90 disabled:opacity-60 focus-ring"
+          >
+            {exporting ? 'Exporting…' : 'Export file'}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 

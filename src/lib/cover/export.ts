@@ -28,11 +28,12 @@ import {
 } from './html';
 import { A4_HEIGHT_PX, A4_WIDTH_PX, COVER_LOGO_PATH } from './types';
 import type { CoverFormData, CoverType, GroupMember } from './types';
+import { exportFilename } from '@/lib/exports/filename';
 
-function coverFilename(formData: CoverFormData, ext: 'pdf' | 'docx'): string {
+function coverFilename(formData: CoverFormData, ext: 'pdf' | 'docx', filename?: string): string {
   const raw = formData.assignmentTitle || 'Cover_Page';
-  const safe = raw.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_') || 'Cover_Page';
-  return `Verve_${safe}.${ext}`;
+  const fallback = `Verve_${raw.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_') || 'Cover_Page'}`;
+  return exportFilename(filename, fallback, ext);
 }
 
 function unwrapDefault<T>(mod: { default?: T } | T): T {
@@ -169,12 +170,13 @@ export async function exportCoverPdf(params: {
   type: CoverType;
   formData: CoverFormData;
   groupMembers: GroupMember[];
+  filename?: string;
 }): Promise<void> {
   const image = await captureCoverJpeg(params);
   const { jsPDF } = await import('jspdf');
   const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
   pdf.addImage(image, 'JPEG', 0, 0, 210, 297);
-  pdf.save(coverFilename(params.formData, 'pdf'));
+  pdf.save(coverFilename(params.formData, 'pdf', params.filename));
 }
 
 const noneBorder: IBorderOptions = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
@@ -586,6 +588,7 @@ export async function exportCoverWord(params: {
   type: CoverType;
   formData: CoverFormData;
   groupMembers: GroupMember[];
+  filename?: string;
 }): Promise<void> {
   const children = await buildCoverWordChildren(params);
   const { formData } = params;
@@ -618,5 +621,5 @@ export async function exportCoverWord(params: {
   });
 
   const blob = await Packer.toBlob(doc);
-  await downloadBlob(blob, coverFilename(formData, 'docx'));
+  await downloadBlob(blob, coverFilename(formData, 'docx', params.filename));
 }

@@ -21,16 +21,59 @@ const DEFAULT_FORM: CoverFormData = {
   university: "Limkokwing University",
   faculty: "Department of Information and Communication Technology",
   courseCode: "PROG101",
-  courseTitle: "Programming",
+  courseTitle: "Programming Logic and Design",
   assignmentTitle: "Individual Assignment 1",
   issueDate: "WEEK 2",
   dueDate: "WEEK 4",
-  lecturer: "Mr. Elijah",
+  lecturer: "Mr. Elijah Fullah",
   className: "DIT1202F",
   semester: "1 / 1",
   studentName: "Mohamed Super Dumbuya",
   studentId: "90500638",
 };
+
+const WEEK_OPTIONS = Array.from({ length: 16 }, (_, index) => `WEEK ${index + 1}`);
+const SEMESTER_OPTIONS = Array.from({ length: 8 }, (_, index) => {
+  const semester = index + 1;
+  const year = Math.floor(index / 2) + 1;
+  return { value: `${semester} / ${year}`, label: `Semester ${semester}, Year ${year}` };
+});
+
+const MODULE_OPTIONS = [
+  ["VIDE103", "Introduction to Video Technology"],
+  ["DCOMP114", "Database Systems"],
+  ["DIT2106", "Introduction to Cybersecurity"],
+  ["DIT1203", "Principle of Web Design"],
+  ["PROG211", "Object Oriented Programming Method 1"],
+  ["DIT2105", "Fundamental of Computer System"],
+  ["PROG101", "Programming Logic and Design"],
+  ["DIT1104", "Introduction to Computer Skills"],
+  ["DFRN", "French Language 1"],
+  ["CRET101", "Creative & Innovation Studies"],
+  ["COMM", "Introduction to Communication & Study Skills"],
+  ["SCM1013", "Civic Education"],
+] as const;
+
+const LECTURER_OPTIONS = [
+  "Mr. Ibrahim Suliman",
+  "Mr. Mohamed L. Kamara",
+  "Mr. Mohamed Lebbie",
+  "Mr. Alusine Lavalie",
+  "Mr. Amadu Kamara",
+  "Mr. Sahid Mustapha Kamara",
+  "Mr. Elijah Fullah",
+  "Mr. Alusine Ngobie",
+  "Mr. Turay",
+  "Mr. Fomah",
+  "Mr. Ibrahim M. Koroma",
+  "Mr. Serry",
+  "Mr. Suliman Kalokoh",
+  "Mr. Abdul Suliman Dinkeh",
+  "Mr. Kamano",
+  "Mr. Ahmed Jelil Contehs",
+  "Mariam Tejan",
+  "Mr. Julius Laggah",
+] as const;
 
 const FACULTY_OPTIONS = [
   "Department of Architecture and Design Innovation",
@@ -38,6 +81,7 @@ const FACULTY_OPTIONS = [
   "Department of Communication, Media, Broadcasting and Public Relations",
   "Department of Information and Communication Technology",
 ];
+const CUSTOM_OPTION = "__custom__";
 
 const inputClass =
   "w-full min-w-0 bg-surface border border-outline-variant/30 rounded-control px-4 py-2.5 focus-ring focus:bg-surface-strong transition-all text-base";
@@ -75,6 +119,9 @@ export default function CoverPage() {
     { name: "John Doe", id: "123456" },
   ]);
   const [exporting, setExporting] = useState<"pdf" | "word" | null>(null);
+  const [filename, setFilename] = useState("");
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<"pdf" | "word">("pdf");
   const [exportError, setExportError] = useState<string | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [showSurvey, setShowSurvey] = useState(false);
@@ -349,9 +396,9 @@ export default function CoverPage() {
 
     try {
       if (kind === "pdf") {
-        await exportCoverPdf({ type, formData, groupMembers });
+        await exportCoverPdf({ type, formData, groupMembers, filename });
       } else {
-        await exportCoverWord({ type, formData, groupMembers });
+        await exportCoverWord({ type, formData, groupMembers, filename });
       }
     } catch (error) {
       console.error(error);
@@ -428,12 +475,13 @@ export default function CoverPage() {
       }
     }
     setExporting(null);
+    setExportMenuOpen(false);
     setShowSurvey(shouldShowSurvey);
     setShareDialogOpen(true);
   };
 
   const exportButtons = (
-    <div className="flex flex-wrap items-center justify-end gap-2">
+    <div className="relative flex flex-wrap items-center justify-end gap-2">
       <button
         type="button"
         onClick={() => {
@@ -455,32 +503,58 @@ export default function CoverPage() {
           <Icon name="zoom_in" />
         </span>
       </button>
-      {/* <button
+      <button
         type="button"
         onClick={handlePrint}
         className="bg-surface-strong text-foreground border border-outline-variant/30 px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:bg-surface active:scale-95 transition-all shadow-soft focus-ring"
       >
         <Icon name="print" className="text-[18px]" />
         Print
-      </button> */}
-      <button
-        type="button"
-        onClick={() => runExport("pdf")}
-        disabled={exporting !== null}
-        className="bg-primary text-primary-foreground px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-soft disabled:opacity-60 focus-ring"
-      >
-        <Icon name="picture_as_pdf" className="text-[18px]" />
-        {exporting === "pdf" ? "Saving…" : "PDF"}
       </button>
       <button
         type="button"
-        onClick={() => runExport("word")}
+        onClick={() => setExportMenuOpen((open) => !open)}
         disabled={exporting !== null}
-        className="bg-surface-strong text-foreground border border-outline-variant/30 px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:bg-surface active:scale-95 transition-all shadow-soft disabled:opacity-60 focus-ring"
+        className="bg-primary text-primary-foreground px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-soft disabled:opacity-60 focus-ring"
       >
-        <Icon name="description" className="text-[18px]" />
-        {exporting === "word" ? "Saving…" : "Word"}
+        <Icon name="download" className="text-[18px]" />
+        Export as
       </button>
+      {exportMenuOpen ? (
+        <div className="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-container bg-surface-strong p-4 shadow-soft">
+          <label className="block text-xs font-semibold uppercase tracking-wide text-secondary" htmlFor="cover-export-format">
+            Export as
+          </label>
+          <select
+            id="cover-export-format"
+            className={`${inputClass} mt-2`}
+            value={exportFormat}
+            onChange={(event) => setExportFormat(event.target.value as "pdf" | "word")}
+          >
+            <option value="pdf">PDF</option>
+            <option value="word">Word</option>
+          </select>
+          <label className="mt-3 block text-xs font-semibold uppercase tracking-wide text-secondary" htmlFor="cover-export-filename">
+            File name
+          </label>
+          <input
+            id="cover-export-filename"
+            className={`${inputClass} mt-2`}
+            type="text"
+            placeholder="Optional custom name"
+            value={filename}
+            onChange={(event) => setFilename(event.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => runExport(exportFormat)}
+            disabled={exporting !== null}
+            className="mt-3 w-full rounded-control bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-soft hover:opacity-90 disabled:opacity-60 focus-ring"
+          >
+            {exporting ? "Exporting…" : "Export file"}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 
@@ -656,39 +730,52 @@ export default function CoverPage() {
               </select>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1 min-w-0">
-                <label
-                  className="text-sm font-medium text-secondary"
-                  htmlFor="courseCode"
-                >
-                  Course Code
-                </label>
-                <input
-                  id="courseCode"
-                  name="courseCode"
-                  className={inputClass}
-                  type="text"
-                  value={formData.courseCode}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="flex flex-col gap-1 min-w-0">
-                <label
-                  className="text-sm font-medium text-secondary"
-                  htmlFor="courseTitle"
-                >
-                  Course Title
-                </label>
-                <input
-                  id="courseTitle"
-                  name="courseTitle"
-                  className={inputClass}
-                  type="text"
-                  value={formData.courseTitle}
-                  onChange={handleChange}
-                />
-              </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-secondary" htmlFor="module">
+                Module
+              </label>
+              <select
+                id="module"
+                className={inputClass}
+                value={MODULE_OPTIONS.some(([code]) => code === formData.courseCode) ? formData.courseCode : CUSTOM_OPTION}
+                onChange={(event) => {
+                  if (event.target.value === CUSTOM_OPTION) {
+                    setFormData((current) => ({ ...current, courseCode: "", courseTitle: "" }));
+                    return;
+                  }
+                  const module = MODULE_OPTIONS.find(([code]) => code === event.target.value);
+                  if (module) {
+                    setFormData((current) => ({ ...current, courseCode: module[0], courseTitle: module[1] }));
+                  }
+                }}
+              >
+                {MODULE_OPTIONS.map(([code, name]) => (
+                  <option key={code} value={code}>{code} — {name}</option>
+                ))}
+                <option value={CUSTOM_OPTION}>Other module...</option>
+              </select>
+              {!MODULE_OPTIONS.some(([code]) => code === formData.courseCode) ? (
+                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <input
+                    id="courseCode"
+                    name="courseCode"
+                    className={inputClass}
+                    type="text"
+                    placeholder="Module code"
+                    value={formData.courseCode}
+                    onChange={handleChange}
+                  />
+                  <input
+                    id="courseTitle"
+                    name="courseTitle"
+                    className={inputClass}
+                    type="text"
+                    placeholder="Module name"
+                    value={formData.courseTitle}
+                    onChange={handleChange}
+                  />
+                </div>
+              ) : null}
             </div>
 
             <div className="flex flex-col gap-1">
@@ -716,15 +803,15 @@ export default function CoverPage() {
                 >
                   Issue Date
                 </label>
-                <input
+                <select
                   id="issueDate"
                   name="issueDate"
                   className={inputClass}
-                  type="text"
-                  placeholder="WEEK 2"
                   value={formData.issueDate}
                   onChange={handleChange}
-                />
+                >
+                  {WEEK_OPTIONS.map((week) => <option key={week} value={week}>{week}</option>)}
+                </select>
               </div>
               <div className="flex flex-col gap-1 min-w-0">
                 <label
@@ -733,15 +820,15 @@ export default function CoverPage() {
                 >
                   Due Date
                 </label>
-                <input
+                <select
                   id="dueDate"
                   name="dueDate"
                   className={inputClass}
-                  type="text"
-                  placeholder="WEEK 4"
                   value={formData.dueDate}
                   onChange={handleChange}
-                />
+                >
+                  {WEEK_OPTIONS.map((week) => <option key={week} value={week}>{week}</option>)}
+                </select>
               </div>
             </div>
 
@@ -752,14 +839,33 @@ export default function CoverPage() {
               >
                 Lecturer/Examiner
               </label>
-              <input
+              <select
                 id="lecturer"
                 name="lecturer"
                 className={inputClass}
-                type="text"
-                value={formData.lecturer}
-                onChange={handleChange}
-              />
+                value={LECTURER_OPTIONS.includes(formData.lecturer as (typeof LECTURER_OPTIONS)[number]) ? formData.lecturer : CUSTOM_OPTION}
+                onChange={(event) => {
+                  if (event.target.value === CUSTOM_OPTION) {
+                    setFormData((current) => ({ ...current, lecturer: "" }));
+                    return;
+                  }
+                  handleChange(event);
+                }}
+              >
+                {LECTURER_OPTIONS.map((lecturer) => <option key={lecturer} value={lecturer}>{lecturer}</option>)}
+                <option value={CUSTOM_OPTION}>Other lecturer...</option>
+              </select>
+              {!LECTURER_OPTIONS.includes(formData.lecturer as (typeof LECTURER_OPTIONS)[number]) ? (
+                <input
+                  className={`${inputClass} mt-2`}
+                  type="text"
+                  aria-label="Custom lecturer name"
+                  placeholder="Enter lecturer name"
+                  value={formData.lecturer}
+                  onChange={handleChange}
+                  name="lecturer"
+                />
+              ) : null}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -786,14 +892,17 @@ export default function CoverPage() {
                 >
                   Semester/Year
                 </label>
-                <input
+                <select
                   id="semester"
                   name="semester"
                   className={inputClass}
-                  type="text"
-                  value={formData.semester}
+                  value={SEMESTER_OPTIONS.some((option) => option.value === formData.semester) ? formData.semester : SEMESTER_OPTIONS[0].value}
                   onChange={handleChange}
-                />
+                >
+                  {SEMESTER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
