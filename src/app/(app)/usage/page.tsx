@@ -28,11 +28,12 @@ function AnalyticsBars({
     return <p className="mt-4 text-sm text-secondary">{emptyMessage}</p>;
   }
 
-  const maximum = Math.max(...entries.map(([, count]) => count), 1);
+  const visibleEntries = entries.slice(0, 10);
+  const maximum = Math.max(...visibleEntries.map(([, count]) => count), 1);
 
   return (
     <div className="mt-4 space-y-4" role="list">
-      {entries.map(([label, count]) => (
+      {visibleEntries.map(([label, count]) => (
         <div key={label} role="listitem">
           <div className="mb-1 flex items-center justify-between gap-3 text-sm">
             <span className="min-w-0 truncate font-medium text-foreground" title={label}>{label}</span>
@@ -46,6 +47,11 @@ function AnalyticsBars({
           </div>
         </div>
       ))}
+      {entries.length > visibleEntries.length ? (
+        <p className="text-xs text-secondary">
+          Showing the top {visibleEntries.length} of {entries.length} categories.
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -166,13 +172,13 @@ export default function UsagePage() {
             {loading ? '…' : stats.generatedAt ? new Date(stats.generatedAt).toLocaleString() : 'No data yet'}
           </p>
         </div>
-        <p className="text-sm leading-relaxed text-secondary">
+        {/* <p className="text-sm leading-relaxed text-secondary">
           Accounts with exports counts distinct signed-in accounts with at least one event recorded
           by Verve. Free guest file exports are counted separately. Print attempts are included in
           total exports, but do not use a guest&apos;s free file export. Exports made before tracking was
           configured are not included. The student survey appears after an account’s fourth recorded
           file export and remains available until submitted.
-        </p>
+        </p> */}
       </div>
 
       <div className="rounded-container bg-surface-strong p-5 shadow-soft">
