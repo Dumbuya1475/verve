@@ -4,6 +4,8 @@ import { AuthProvider } from '@/components/AuthProvider';
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import { FirebaseAnalytics } from '@/components/FirebaseAnalytics';
+import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/site';
 import './globals.css';
 
 const inter = Inter({
@@ -14,12 +16,25 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Verve',
-    template: '%s · Verve',
+    default: 'Assignment Cover Page Maker for Sierra Leone Students',
+    template: `%s | ${SITE_NAME}`,
   },
-  description:
-    'A calm academic workspace for university students in Sierra Leone. Assemble assignment cover pages and export them for class.',
-  applicationName: 'Verve',
+  description: SITE_TAGLINE,
+  metadataBase: SITE_URL,
+  applicationName: SITE_NAME,
+  openGraph: {
+    type: 'website',
+    siteName: SITE_NAME,
+    locale: 'en_SL',
+    title: 'Assignment Cover Page Maker for Sierra Leone Students',
+    description: SITE_TAGLINE,
+    url: SITE_URL,
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Assignment Cover Page Maker for Sierra Leone Students',
+    description: SITE_TAGLINE,
+  },
   appleWebApp: {
     capable: true,
     title: 'Verve',
@@ -49,6 +64,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="flex min-h-full flex-col font-sans">
+        <FirebaseAnalytics />
         <AuthProvider>
           <ServiceWorkerRegister />
           <OfflineBanner />

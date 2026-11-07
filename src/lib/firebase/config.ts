@@ -5,6 +5,7 @@ export type FirebaseWebConfig = {
   storageBucket: string;
   messagingSenderId: string;
   appId: string;
+  measurementId?: string;
 };
 
 export function getFirebaseWebConfig(): FirebaseWebConfig | null {
@@ -15,6 +16,7 @@ export function getFirebaseWebConfig(): FirebaseWebConfig | null {
   const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET?.trim() ?? '';
   const messagingSenderId = process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID?.trim() ?? '';
   const appId = process.env.NEXT_PUBLIC_FIREBASE_APP_ID?.trim() ?? '';
+  const measurementId = process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID?.trim() ?? '';
 
   if (!apiKey || !authDomain || !projectId || !appId) {
     return null;
@@ -27,6 +29,7 @@ export function getFirebaseWebConfig(): FirebaseWebConfig | null {
     storageBucket,
     messagingSenderId,
     appId,
+    ...(measurementId ? { measurementId } : {}),
   };
 }
 

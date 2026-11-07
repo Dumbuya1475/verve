@@ -8,6 +8,12 @@ const EMPTY_STATS = {
   guestExports: 0,
   exportsByKind: {} as Record<string, number>,
   exportsByFormat: {} as Record<string, number>,
+  exportsByField: {
+    semester: {},
+    faculty: {},
+    className: {},
+    studentName: {},
+  } as Record<string, Record<string, number>>,
   generatedAt: null as string | null,
 };
 
@@ -40,6 +46,7 @@ export default function UsagePage() {
           guestExports?: number;
           exportsByKind?: Record<string, number>;
           exportsByFormat?: Record<string, number>;
+          exportsByField?: Record<string, Record<string, number>>;
           generatedAt?: string | null;
           error?: string;
         };
@@ -60,6 +67,7 @@ export default function UsagePage() {
             guestExports: payload.guestExports ?? 0,
             exportsByKind: payload.exportsByKind ?? {},
             exportsByFormat: payload.exportsByFormat ?? {},
+            exportsByField: payload.exportsByField ?? EMPTY_STATS.exportsByField,
             generatedAt: payload.generatedAt ?? null,
           });
         }
@@ -80,6 +88,12 @@ export default function UsagePage() {
 
   const kindEntries = Object.entries(stats.exportsByKind).sort(([left], [right]) => left.localeCompare(right));
   const formatEntries = Object.entries(stats.exportsByFormat).sort(([left], [right]) => left.localeCompare(right));
+  const fieldLabels: Record<string, string> = {
+    semester: 'Semester',
+    faculty: 'Faculty',
+    className: 'Class',
+    studentName: 'Student',
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -162,6 +176,32 @@ export default function UsagePage() {
             ))}
           </ul>
         )}
+        </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {Object.entries(fieldLabels).map(([field, label]) => {
+          const entries = Object.entries(stats.exportsByField[field] ?? {})
+            .sort(([left], [right]) => left.localeCompare(right));
+          return (
+            <section className="rounded-container bg-surface-strong p-5 shadow-soft" key={field}>
+              <h2 className="text-xl font-semibold text-foreground">By {label.toLowerCase()}</h2>
+              {loading ? (
+                <p className="mt-4 text-sm text-secondary">Loading counts…</p>
+              ) : entries.length === 0 ? (
+                <p className="mt-4 text-sm text-secondary">No exports have been recorded yet.</p>
+              ) : (
+                <ul className="mt-4 max-h-64 space-y-3 overflow-y-auto">
+                  {entries.map(([value, count]) => (
+                    <li className="flex items-center justify-between gap-4 rounded-control bg-surface p-3" key={value}>
+                      <span className="min-w-0 truncate text-sm font-medium text-foreground" title={value}>{value}</span>
+                      <span className="shrink-0 text-sm font-semibold text-primary">{count}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          );
+        })}
       </div>
     </div>
   );

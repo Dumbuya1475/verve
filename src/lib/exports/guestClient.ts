@@ -1,5 +1,6 @@
 export type ExportKind = 'cover' | 'document';
 export type ExportFormat = 'pdf' | 'docx' | 'word';
+import type { ExportMetadata } from './metadata';
 
 type GuestExportAction = 'reserve' | 'complete' | 'cancel';
 
@@ -8,6 +9,7 @@ async function sendGuestExportAction(
   reservationId: string,
   kind?: ExportKind,
   format?: ExportFormat,
+  metadata?: ExportMetadata,
 ): Promise<{ reservationId?: string }> {
   const response = await fetch('/api/exports/guest', {
     method: 'POST',
@@ -17,6 +19,7 @@ async function sendGuestExportAction(
       reservationId,
       ...(kind ? { kind } : {}),
       ...(format ? { format } : {}),
+      ...(metadata ? { metadata } : {}),
     }),
   });
   const contentType = response.headers.get('content-type') ?? '';
@@ -36,9 +39,10 @@ async function sendGuestExportAction(
 export async function reserveGuestExport(
   kind: ExportKind,
   format: ExportFormat,
+  metadata?: ExportMetadata,
 ): Promise<string> {
   const reservationId = crypto.randomUUID();
-  const result = await sendGuestExportAction('reserve', reservationId, kind, format);
+  const result = await sendGuestExportAction('reserve', reservationId, kind, format, metadata);
   return result.reservationId ?? reservationId;
 }
 

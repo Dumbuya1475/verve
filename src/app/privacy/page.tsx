@@ -5,6 +5,9 @@ import { Icon } from '@/components/Icon';
 export const metadata: Metadata = {
   title: 'Privacy policy',
   description: 'How Verve handles account, assignment, export, feedback, and survey information.',
+  alternates: {
+    canonical: '/privacy',
+  },
 };
 
 export default function PrivacyPage() {
@@ -50,6 +53,21 @@ export default function PrivacyPage() {
             usage totals, receive survey responses and feedback, and maintain and improve Verve.
             Sharing from the export prompt shares a link to Verve; it does not send your assignment
             or cover to your contacts.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-foreground">Analytics</h2>
+          <p className="mt-2">
+            When Firebase Analytics is configured for Verve, Google Analytics collects page views
+            and basic app activity, along with browser and device information. Verve also records
+            successful exports with their type, file format, and whether the export was made by a
+            guest or signed-in visitor. These analytics events do not include assignment content,
+            names, email addresses, or account identifiers.
+          </p>
+          <p className="mt-2">
+            The homepage may display the total number of exports recorded. Account and guest
+            breakdowns remain private and are available only to authorized administrators.
           </p>
         </section>
 

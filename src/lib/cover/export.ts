@@ -604,7 +604,12 @@ export async function exportCoverWord(params: {
         properties: {
           page: {
             size: { width: '210mm', height: '297mm' },
-            margin: { top: '1in', bottom: '1in', left: '1in', right: '1in' },
+            margin: {
+              top: params.type === 'Group' && params.groupMembers.length >= 6 ? '0.5in' : '1in',
+              bottom: params.type === 'Group' && params.groupMembers.length >= 6 ? '0.5in' : '1in',
+              left: '1in',
+              right: '1in',
+            },
           },
         },
         children,
