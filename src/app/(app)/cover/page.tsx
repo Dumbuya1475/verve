@@ -129,6 +129,7 @@ export default function CoverPage() {
   const cloudReadyUserId = useRef<string | null>(null);
   const hasLocalDraftRef = useRef(false);
   const currentDraftRef = useRef({ type, formData, groupMembers });
+  const exportMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -216,6 +217,26 @@ export default function CoverPage() {
   useEffect(() => {
     currentDraftRef.current = { type, formData, groupMembers };
   }, [type, formData, groupMembers]);
+
+  useEffect(() => {
+    if (!exportMenuOpen) return;
+
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (!exportMenuRef.current?.contains(event.target as Node)) {
+        setExportMenuOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExportMenuOpen(false);
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [exportMenuOpen]);
 
   useEffect(() => {
     if (!localDraftLoaded || authLoading) return;
@@ -509,7 +530,7 @@ export default function CoverPage() {
   };
 
   const exportButtons = (
-    <div className="relative flex flex-wrap items-center justify-end gap-2">
+    <div ref={exportMenuRef} className="relative flex flex-wrap items-center justify-end gap-2">
       <button
         type="button"
         onClick={() => {
@@ -601,7 +622,7 @@ export default function CoverPage() {
             Cover Page Details
           </h1>
           <p className="mt-1 text-secondary text-sm sm:text-base">
-            Fill in your assignment details, then export a PDF or Word cover.
+            Fill in your details, then export a PDF or Word cover.
           </p>
           {user ? (
             <div

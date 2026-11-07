@@ -46,6 +46,7 @@ export default function DocumentPage() {
   const [saveState, setSaveState] = useState<SaveState>('local');
   const [hasCover, setHasCover] = useState(false);
   const skipNextPush = useRef(true);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
   const userId = user?.uid ?? null;
 
   useEffect(() => {
@@ -130,6 +131,26 @@ export default function DocumentPage() {
 
     return () => window.clearTimeout(handle);
   }, [draft, isClient, userId]);
+
+  useEffect(() => {
+    if (!exportMenuOpen) return;
+
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (!exportMenuRef.current?.contains(event.target as Node)) {
+        setExportMenuOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setExportMenuOpen(false);
+    };
+
+    document.addEventListener('pointerdown', closeOnOutsideClick);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideClick);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [exportMenuOpen]);
 
   const updateDraft = (patch: Partial<AssignmentDraft>) => {
     setDraft((current) => ({ ...current, ...patch, updatedAt: Date.now() }));
@@ -250,7 +271,7 @@ export default function DocumentPage() {
           : 'Saved on this device';
 
   const exportButtons = (
-    <div className="relative flex flex-wrap items-center justify-end gap-2">
+    <div ref={exportMenuRef} className="relative flex flex-wrap items-center justify-end gap-2">
       <button
         type="button"
         onClick={() => {
