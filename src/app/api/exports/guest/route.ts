@@ -147,13 +147,13 @@ export async function POST(request: Request) {
     const now = Date.now();
 
     if (parsed.data.action === 'record-print') {
-      await firestore.collection('exportEvents').add({
-        guestId: identity.id,
-        kind: 'cover',
-        format: 'print',
-        createdAt: new Date().toISOString(),
-      });
-      return withGuestCookie(NextResponse.json({ ok: true }), identity);
+      return withGuestCookie(
+        NextResponse.json(
+          { error: 'Printing is available only to the authorized campus café account.' },
+          { status: 403 },
+        ),
+        identity,
+      );
     }
 
     if (parsed.data.action === 'reserve') {

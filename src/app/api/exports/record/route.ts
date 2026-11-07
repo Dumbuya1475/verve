@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { SESSION_COOKIE } from '@/lib/firebase/session';
 import {
   getConfiguredAdminUid,
+  getConfiguredCafePrintUids,
   getFirebaseAdminFirestore,
   verifyFirebaseSession,
 } from '@/lib/firebase/admin';
@@ -54,6 +55,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Sign in to record export usage.' }, { status: 401 });
   }
 
+  if (parsed.data.format === 'print' && !getConfiguredCafePrintUids().has(sessionUser.uid)) {
+    return NextResponse.json(
+      { error: 'Printing is available only to the authorized campus café account.' },
+      { status: 403 },
+    );
+  }
+
   try {
     const firestore = getFirebaseAdminFirestore();
     if (parsed.data.format === 'print') {
@@ -61,6 +69,7 @@ export async function POST(request: Request) {
         uid: sessionUser.uid,
         kind: parsed.data.kind,
         format: parsed.data.format,
+        ...(parsed.data.metadata ?? {}),
         createdAt: new Date().toISOString(),
       });
       return NextResponse.json({ ok: true, showSurvey: false });

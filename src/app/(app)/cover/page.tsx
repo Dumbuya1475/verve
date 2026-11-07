@@ -125,6 +125,7 @@ export default function CoverPage() {
   const [exportError, setExportError] = useState<string | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [showSurvey, setShowSurvey] = useState(false);
+  const [canPrint, setCanPrint] = useState(false);
   const cloudReadyUserId = useRef<string | null>(null);
   const hasLocalDraftRef = useRef(false);
   const currentDraftRef = useRef({ type, formData, groupMembers });
@@ -177,6 +178,26 @@ export default function CoverPage() {
       })
       .catch((error: unknown) => {
         console.error("Could not check export survey eligibility", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.uid]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setCanPrint(false);
+    if (!user?.uid) return () => { cancelled = true; };
+
+    void fetch('/api/auth/permissions', { cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) return;
+        const result = (await response.json()) as { canPrint?: boolean };
+        if (!cancelled) setCanPrint(result.canPrint === true);
+      })
+      .catch((error: unknown) => {
+        console.error('Could not load print permissions', error);
       });
 
     return () => {
@@ -326,22 +347,29 @@ export default function CoverPage() {
   };
 
   const handlePrint = () => {
+    if (!canPrint) {
+      setExportError("Printing is available only to the authorized campus café account.");
+      return;
+    }
     setExportError(null);
     window.print();
 
     void (async () => {
       try {
-        const response = user
-          ? await fetch("/api/exports/record", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ kind: "cover", format: "print" }),
-            })
-          : await fetch("/api/exports/guest", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ action: "record-print" }),
-            });
+        const response = await fetch("/api/exports/record", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            kind: "cover",
+            format: "print",
+            metadata: {
+              semester: formData.semester,
+              faculty: formData.faculty,
+              className: formData.className,
+              studentName: formData.studentName,
+            },
+          }),
+        });
         const payload = (await response.json().catch(() => null)) as
           | { error?: string }
           | null;
@@ -503,14 +531,16 @@ export default function CoverPage() {
           <Icon name="zoom_in" />
         </span>
       </button>
-      <button
-        type="button"
-        onClick={handlePrint}
-        className="bg-surface-strong text-foreground border border-outline-variant/30 px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:bg-surface active:scale-95 transition-all shadow-soft focus-ring"
-      >
-        <Icon name="print" className="text-[18px]" />
-        Print
-      </button>
+      {canPrint ? (
+        <button
+          type="button"
+          onClick={handlePrint}
+          className="bg-surface-strong text-foreground border border-outline-variant/30 px-3 sm:px-4 py-2 rounded-control text-sm font-bold flex items-center gap-2 hover:bg-surface active:scale-95 transition-all shadow-soft focus-ring"
+        >
+          <Icon name="print" className="text-[18px]" />
+          Print
+        </button>
+      ) : null}
       <button
         type="button"
         onClick={() => setExportMenuOpen((open) => !open)}
@@ -571,8 +601,7 @@ export default function CoverPage() {
             Cover Page Details
           </h1>
           <p className="mt-1 text-secondary text-sm sm:text-base">
-            Fill in your assignment details, then export a PDF or Word cover
-            that matches the faculty template.
+            Fill in your assignment details, then export a PDF or Word cover.
           </p>
           {user ? (
             <div

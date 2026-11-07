@@ -88,6 +88,15 @@ export function getConfiguredAdminUid(): string {
   return uid;
 }
 
+export function getConfiguredCafePrintUids(): Set<string> {
+  return new Set(
+    (process.env.CAFE_PRINT_UIDS ?? '')
+      .split(',')
+      .map((uid) => uid.trim())
+      .filter(Boolean),
+  );
+}
+
 export async function verifyFirebaseSession(
   idToken: string,
 ): Promise<Awaited<ReturnType<typeof verifyFirebaseIdToken>>> {
